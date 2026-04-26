@@ -2,7 +2,7 @@
 name = "zen-backend"
 version = "0.1.0"
 description = "FastAPI backend for Zen daily wisdom service"
-readme = "../../IMPLEMENTATION_PLAN.md"
+readme = "../../README.md"
 requires-python = ">=3.12"
 dependencies = [
   "fastapi>=0.115.0",
@@ -22,7 +22,8 @@ dependencies = [
   "scipy>=1.14.0",
   "pyyaml>=6.0.2",
   "python-dotenv>=1.0.1",
-  "psycopg[binary]>=3.2.0"
+  "psycopg[binary]>=3.2.0",
+  "pillow>=12.2.0",
 ]
 
 [project.optional-dependencies]
