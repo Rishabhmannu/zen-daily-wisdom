@@ -1,6 +1,8 @@
-# Zen Daily Wisdom Service
+# Zen Daily Wisdom
 
-Personalized daily motivational/philosophical reflection service for personal use.
+Personalized daily wisdom service using FastAPI, Next.js, Supabase, and Gemini with RAG, mood check-ins, and email/Telegram delivery.
+
+Zen Daily Wisdom is a personal full-stack project that delivers short, high-quality daily reflections through Gmail and Telegram. It combines retrieval-augmented generation over a curated wisdom corpus, style rotation, and feedback/check-in personalization to improve relevance over time.
 
 Canonical implementation details live in:
 
@@ -14,8 +16,10 @@ Canonical implementation details live in:
 - Frontend/Next.js scaffold created
 - Supabase migration skeleton added
 - CI + daily cron + keepalive workflows added
+- Check-in reminder cron workflow added (3x/day IST)
 - Dashboard auth gate + allowlist enabled (Supabase magic-link)
 - Telegram webhook endpoint added for inline rating and `/mood`
+- Northflank migration started for backend hosting
 
 ## Quick start (backend scaffold)
 
@@ -78,4 +82,8 @@ Register Telegram webhook (after deploying backend over HTTPS):
 source .venv/bin/activate
 python scripts/register_telegram_webhook.py
 ```
+
+Northflank deployment guide:
+
+- `docs/NORTHFLANK_BACKEND_DEPLOY.md`
 
