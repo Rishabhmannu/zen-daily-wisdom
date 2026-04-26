@@ -18,6 +18,24 @@ export type BanditItem = {
   expected_value: number;
 };
 
+export type CheckinItem = {
+  id: string;
+  checkin_date: string;
+  window: "morning" | "midday" | "evening";
+  channel: "email" | "telegram" | "dashboard";
+  mood_score: number;
+  challenge_score?: number | null;
+  note?: string | null;
+  submitted_at: string;
+};
+
+export type CheckinStats = {
+  completion_rate: number;
+  avg_mood?: number | null;
+  avg_challenge?: number | null;
+  days_considered: number;
+};
+
 function backendUrl() {
   return process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, "") || "http://localhost:8000";
 }
@@ -47,5 +65,12 @@ export async function fetchHistory(token: string, limit = 10) {
 
 export async function fetchBandit(token: string, limit = 10) {
   return fetchJson<{ data: BanditItem[] }>(`/dashboard/bandit?limit=${limit}`, token);
+}
+
+export async function fetchCheckins(token: string, limit = 30, days = 14) {
+  return fetchJson<{ data: CheckinItem[]; stats: CheckinStats }>(
+    `/dashboard/checkins?limit=${limit}&days=${days}`,
+    token
+  );
 }
 

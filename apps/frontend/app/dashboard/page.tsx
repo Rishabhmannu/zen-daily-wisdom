@@ -1,5 +1,5 @@
 import { SendNowButton } from "@/components/SendNowButton";
-import { fetchBandit, fetchHealth, fetchHistory, fetchToday } from "@/lib/api";
+import { fetchBandit, fetchCheckins, fetchHealth, fetchHistory, fetchToday } from "@/lib/api";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 function styleLabel(styleKey?: string | null): string {
@@ -24,17 +24,20 @@ export default async function DashboardPage() {
   } = await supabase.auth.getSession();
   const token = session?.access_token || "";
 
-  const [healthResult, todayResult, historyResult, banditResult] = await Promise.allSettled([
+  const [healthResult, todayResult, historyResult, banditResult, checkinResult] = await Promise.allSettled([
     fetchHealth(),
     fetchToday(token),
     fetchHistory(token, 10),
-    fetchBandit(token, 10)
+    fetchBandit(token, 10),
+    fetchCheckins(token, 30, 14)
   ]);
 
   const health = healthResult.status === "fulfilled" ? healthResult.value : null;
   const today = todayResult.status === "fulfilled" ? todayResult.value.data : null;
   const history = historyResult.status === "fulfilled" ? historyResult.value.data : [];
   const bandit = banditResult.status === "fulfilled" ? banditResult.value.data : [];
+  const checkins = checkinResult.status === "fulfilled" ? checkinResult.value.data : [];
+  const checkinStats = checkinResult.status === "fulfilled" ? checkinResult.value.stats : null;
 
   return (
     <main style={{ maxWidth: 960, margin: "0 auto", padding: "48px 20px" }}>
@@ -91,6 +94,47 @@ export default async function DashboardPage() {
           </>
         ) : (
           <p>No message found for today yet.</p>
+        )}
+      </section>
+
+      <section
+        style={{
+          background: "#fff",
+          border: "1px solid #ddd",
+          borderRadius: 8,
+          padding: 16,
+          marginBottom: 16
+        }}
+      >
+        <h2 style={{ marginTop: 0 }}>Check-ins (14 Days)</h2>
+        <p style={{ margin: "8px 0" }}>
+          Completion rate:{" "}
+          <strong>{checkinStats ? `${(checkinStats.completion_rate * 100).toFixed(1)}%` : "n/a"}</strong>
+        </p>
+        <p style={{ margin: "8px 0" }}>
+          Avg mood:{" "}
+          <strong>
+            {checkinStats?.avg_mood !== null && checkinStats?.avg_mood !== undefined
+              ? checkinStats.avg_mood.toFixed(2)
+              : "n/a"}
+          </strong>
+          {" / 5"}
+        </p>
+        <p style={{ margin: "8px 0" }}>
+          Avg challenge load:{" "}
+          <strong>
+            {checkinStats?.avg_challenge !== null && checkinStats?.avg_challenge !== undefined
+              ? checkinStats.avg_challenge.toFixed(2)
+              : "n/a"}
+          </strong>
+          {" / 5"}
+        </p>
+        {checkins.length > 0 ? (
+          <p style={{ margin: "8px 0", color: "#555" }}>
+            Last check-in: {checkins[0]?.checkin_date} ({checkins[0]?.window})
+          </p>
+        ) : (
+          <p style={{ margin: "8px 0", color: "#555" }}>No check-ins recorded yet.</p>
         )}
       </section>
 

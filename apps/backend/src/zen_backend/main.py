@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from zen_backend.routes.checkin import router as checkin_router
 from zen_backend.routes.dashboard import router as dashboard_router
 from zen_backend.routes.feedback import router as feedback_router
 from zen_backend.routes.health import router as health_router
@@ -18,6 +19,7 @@ def create_app() -> FastAPI:
     app.include_router(feedback_router)
     app.include_router(dashboard_router)
     app.include_router(telegram_router)
+    app.include_router(checkin_router)
     return app
 
 

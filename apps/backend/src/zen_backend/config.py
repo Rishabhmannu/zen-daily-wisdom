@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     supabase_db_dsn: str = Field(default="", alias="SUPABASE_DB_DSN")
     supabase_db_dsn_pooler: str = Field(default="", alias="SUPABASE_DB_DSN_POOLER")
     public_base_url: str = Field(default="http://localhost:8000", alias="NEXT_PUBLIC_BACKEND_URL")
+    frontend_base_url: str = Field(default="http://localhost:3000", alias="NEXT_PUBLIC_FRONTEND_URL")
     allowed_emails_raw: str = Field(default="", alias="ALLOWED_EMAILS")
 
     @property

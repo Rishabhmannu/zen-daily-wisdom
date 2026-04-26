@@ -1,0 +1,39 @@
+name: Check-in Reminders
+
+on:
+  schedule:
+    - cron: "0 3,8,15 * * *" # 08:30, 13:30, 20:30 IST
+  workflow_dispatch:
+
+jobs:
+  trigger-checkin-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger backend check-in reminder endpoint
+        env:
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+          INTERNAL_HMAC_SECRET: ${{ secrets.INTERNAL_HMAC_SECRET }}
+        run: |
+          python - <<'PY'
+          import hashlib
+          import hmac
+          import json
+          import os
+          import urllib.request
+
+          payload = {"window": None}
+          body = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
+          sig = hmac.new(os.environ["INTERNAL_HMAC_SECRET"].encode("utf-8"), body, hashlib.sha256).hexdigest()
+
+          req = urllib.request.Request(
+              url=f'{os.environ["BACKEND_URL"].rstrip("/")}/internal/checkin-reminders',
+              data=body,
+              headers={
+                  "Content-Type": "application/json",
+                  "X-Internal-Signature": sig,
+              },
+              method="POST",
+          )
+          with urllib.request.urlopen(req) as resp:
+              print(resp.read().decode("utf-8"))
+          PY

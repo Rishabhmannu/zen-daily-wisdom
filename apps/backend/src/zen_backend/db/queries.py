@@ -108,3 +108,20 @@ def get_active_prompt(client: Client, kind: str) -> str | None:
         return None
     return rows[0].get("body")
 
+
+def insert_checkin_response(client: Client, payload: dict[str, Any]) -> dict[str, Any]:
+    result = client.table("checkin_responses").insert(payload).execute()
+    rows = result.data or []
+    return rows[0] if rows else {}
+
+
+def get_recent_checkin_responses(client: Client, limit: int = 90) -> list[dict[str, Any]]:
+    result = (
+        client.table("checkin_responses")
+        .select("*")
+        .order("submitted_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return result.data or []
+

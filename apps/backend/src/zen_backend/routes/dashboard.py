@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
@@ -10,6 +11,7 @@ from zen_backend.db.queries import (
     get_bandit_state,
     get_feedback_for_sent_ids,
     get_latest_sent_history,
+    get_recent_checkin_responses,
     get_recent_sent_history,
 )
 from zen_backend.security.jwt_verify import verify_owner_user
@@ -77,4 +79,40 @@ def bandit(limit: int = Query(default=200, ge=1, le=500), _: dict = Depends(veri
 def send_now(payload: SendNowRequest, _: dict = Depends(verify_owner_user)) -> dict:
     # Personal single-user project endpoint; intentionally simple.
     return run_daily_generation(run_date=date.today(), force=payload.force)
+
+
+@router.get("/checkins")
+def checkins(
+    limit: int = Query(default=60, ge=1, le=300),
+    days: int = Query(default=14, ge=1, le=60),
+    _: dict = Depends(verify_owner_user),
+) -> dict:
+    client = get_supabase_client()
+    rows = get_recent_checkin_responses(client, limit=limit)
+
+    expected_windows = {"morning", "midday", "evening"}
+    window_hits_by_date: dict[str, set[str]] = {}
+    for row in rows:
+        row_date = str(row.get("checkin_date"))
+        window = str(row.get("window"))
+        if row_date and window in expected_windows:
+            window_hits_by_date.setdefault(row_date, set()).add(window)
+
+    today = datetime.utcnow().date()
+    dates_considered = [(today - timedelta(days=offset)).isoformat() for offset in range(days)]
+    observed = sum(len(window_hits_by_date.get(day, set())) for day in dates_considered)
+    expected = len(dates_considered) * len(expected_windows)
+    completion_rate = (observed / expected) if expected else 0.0
+
+    mood_values = [float(row["mood_score"]) for row in rows if row.get("mood_score") is not None]
+    challenge_values = [
+        float(row["challenge_score"]) for row in rows if row.get("challenge_score") is not None
+    ]
+    stats = {
+        "completion_rate": completion_rate,
+        "avg_mood": (sum(mood_values) / len(mood_values)) if mood_values else None,
+        "avg_challenge": (sum(challenge_values) / len(challenge_values)) if challenge_values else None,
+        "days_considered": days,
+    }
+    return {"data": rows, "stats": stats}
 

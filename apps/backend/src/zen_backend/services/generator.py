@@ -14,14 +14,16 @@ from zen_backend.db.queries import (
     fetch_candidate_passages,
     get_sent_history_by_date,
     get_active_prompt,
+    get_recent_checkin_responses,
     insert_sent_history,
     update_sent_history,
 )
+from zen_backend.services.checkin_context import build_checkin_summary
 from zen_backend.services.gemini_client import generate_reflection
 from zen_backend.services.gmail_client import send_email
 from zen_backend.services.calendar_client import upsert_theme_of_day_event
 from zen_backend.services.retrieval import choose_passage, fetch_ranked_passages
-from zen_backend.services.telegram_client import send_message
+from zen_backend.services.telegram_client import send_card_message
 from zen_backend.security.hmac_sig import sign_text
 
 _TEMPLATE_ENV = Environment(
@@ -94,6 +96,32 @@ def _style_retrieval_preferences(style_key: str) -> tuple[str, list[str], bool]:
     if style_key == "mixed_poetic_action":
         return (f"{base}, poetic image plus concrete action", ["presence", "courage"], False)
     return (f"{base}, gentle poetic thought", ["presence"], False)
+
+
+def _adapt_preferences_with_checkin(
+    query: str,
+    required_tags: list[str],
+    checkin_context_line: str,
+    mood_avg: float | None,
+    challenge_avg: float | None,
+) -> tuple[str, list[str]]:
+    updated_query = f"{query}; check-in context: {checkin_context_line}"
+    updated_tags = list(required_tags)
+
+    if mood_avg is not None and mood_avg <= 2.6:
+        updated_query += "; support overwhelm, reduce pressure, gentler framing"
+        updated_tags.extend(["rest", "patience"])
+    elif mood_avg is not None and mood_avg >= 4.0:
+        updated_query += "; sustain momentum with grounded discipline"
+        updated_tags.extend(["discipline", "work"])
+
+    if challenge_avg is not None and challenge_avg >= 3.8:
+        updated_query += "; prioritize clarity under heavy day-load"
+        updated_tags.extend(["presence", "courage"])
+
+    # Preserve order while removing duplicates.
+    deduped_tags = list(dict.fromkeys(updated_tags))
+    return updated_query, deduped_tags
 
 
 def _build_feedback_link(sent_id: str, rating: int, channel: str) -> str:
@@ -201,6 +229,15 @@ def run_daily_generation(run_date: date, force: bool = False) -> dict[str, Any]:
         raise RuntimeError("No passages found. Seed the `passages` table first.")
     style_key, style_instruction = _select_daily_style(run_date)
     query, required_tags, prefer_season_words = _style_retrieval_preferences(style_key)
+    recent_checkins = get_recent_checkin_responses(client, limit=30)
+    checkin_summary = build_checkin_summary(recent_checkins, run_date)
+    query, required_tags = _adapt_preferences_with_checkin(
+        query=query,
+        required_tags=required_tags,
+        checkin_context_line=checkin_summary.context_line,
+        mood_avg=checkin_summary.mood_avg,
+        challenge_avg=checkin_summary.challenge_avg,
+    )
     ranked = fetch_ranked_passages(
         query,
         source_tier="gold",
@@ -221,19 +258,23 @@ def run_daily_generation(run_date: date, force: bool = False) -> dict[str, Any]:
         "You are a calm assistant. Write concise, grounded, motivational reflections in English."
     )
     reflection_prompt = get_active_prompt(client, "reflection") or "Write a short grounded thought."
+    reflection_prompt_with_context = (
+        f"{reflection_prompt}\n\n{style_instruction}\n\n"
+        f"Same-day check-in context: {checkin_summary.context_line}"
+    )
     try:
         reflection = generate_reflection(
             run_date=run_date,
             passage_text=text,
             citation=citation,
             system_prompt=system_prompt,
-            reflection_prompt=f"{reflection_prompt}\n\n{style_instruction}",
+            reflection_prompt=reflection_prompt_with_context,
         )
         reflection = _normalize_thought(reflection)
         valid, reason = _quality_check(reflection, text)
         if not valid:
             retry_prompt = (
-                f"{reflection_prompt}\n\n{style_instruction}\n\n"
+                f"{reflection_prompt_with_context}\n\n"
                 f"Retry because previous output failed quality check: {reason}."
                 " Keep it 25-55 words and grounded in source terms."
             )
@@ -277,6 +318,9 @@ def run_daily_generation(run_date: date, force: bool = False) -> dict[str, Any]:
             "selected_passage_id": str(passage["id"]),
             "top_similarity": float(ranked[0].get("similarity", 0.0)) if ranked else None,
             "style_key": style_key,
+            "checkin_context": checkin_summary.context_line,
+            "checkin_mood_avg": checkin_summary.mood_avg,
+            "checkin_challenge_avg": checkin_summary.challenge_avg,
             "required_tags": required_tags,
             "prefer_season_words": prefer_season_words,
         },
@@ -307,7 +351,13 @@ def run_daily_generation(run_date: date, force: bool = False) -> dict[str, Any]:
         channel_list.append("email")
 
     if settings.telegram_bot_token and settings.telegram_chat_id:
-        telegram_response = send_message(f"{reflection}\n\nSource: {citation}", sent_id=sent_id)
+        telegram_response = send_card_message(
+            thought_of_day=reflection,
+            theme_of_day=theme_of_day,
+            citation=citation,
+            calendar_add_link=calendar_add_link,
+            sent_id=sent_id,
+        )
         delivery["telegram"] = telegram_response
         channel_list.append("telegram")
 
