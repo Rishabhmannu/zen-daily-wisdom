@@ -5,6 +5,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml /app/pyproject.toml
+COPY README.md /app/README.md
 COPY src /app/src
 
 RUN pip install --no-cache-dir --upgrade pip && \
