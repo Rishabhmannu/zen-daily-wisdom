@@ -1,0 +1,23 @@
+.venv/
+.hf_cache/
+__pycache__/
+.DS_Store
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+# Local OAuth creds: ignore contents of secrets/ but keep empty dir via .gitkeep
+secrets/*
+!secrets/.gitkeep
+client_secret*.json
+.env
+.env.*
+!.env.example
+node_modules/
+**/node_modules/
+.pnpm-store-local/
+.pnpm-store/
+
+template-design/

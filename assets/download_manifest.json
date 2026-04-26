@@ -1,0 +1,128 @@
+{
+  "summary": {
+    "ok": 15,
+    "failed": 0
+  },
+  "results": [
+    {
+      "name": "bhagavad_gita_song_celestial",
+      "source_url": "https://www.gutenberg.org/cache/epub/2388/pg2388.txt",
+      "output_file": "assets/corpus/gold/bhagavad_gita_song_celestial.txt",
+      "status": "ok",
+      "bytes": 147504,
+      "error": ""
+    },
+    {
+      "name": "tao_te_ching_legge",
+      "source_url": "https://www.gutenberg.org/cache/epub/216/pg216.txt",
+      "output_file": "assets/corpus/gold/tao_te_ching_legge.txt",
+      "status": "ok",
+      "bytes": 80555,
+      "error": ""
+    },
+    {
+      "name": "analects_legge",
+      "source_url": "https://www.gutenberg.org/cache/epub/3330/pg3330.txt",
+      "output_file": "assets/corpus/gold/analects_legge.txt",
+      "status": "ok",
+      "bytes": 191675,
+      "error": ""
+    },
+    {
+      "name": "meditations_marcus_aurelius",
+      "source_url": "https://www.gutenberg.org/cache/epub/2680/pg2680.txt",
+      "output_file": "assets/corpus/gold/meditations_marcus_aurelius.txt",
+      "status": "ok",
+      "bytes": 425311,
+      "error": ""
+    },
+    {
+      "name": "epictetus_discourses",
+      "source_url": "https://www.gutenberg.org/cache/epub/10661/pg10661.txt",
+      "output_file": "assets/corpus/gold/epictetus_discourses.txt",
+      "status": "ok",
+      "bytes": 351894,
+      "error": ""
+    },
+    {
+      "name": "walden_thoreau",
+      "source_url": "https://www.gutenberg.org/cache/epub/205/pg205.txt",
+      "output_file": "assets/corpus/gold/walden_thoreau.txt",
+      "status": "ok",
+      "bytes": 667960,
+      "error": ""
+    },
+    {
+      "name": "emerson_essays_first_series",
+      "source_url": "https://www.gutenberg.org/cache/epub/16643/pg16643.txt",
+      "output_file": "assets/corpus/gold/emerson_essays_first_series.txt",
+      "status": "ok",
+      "bytes": 567496,
+      "error": ""
+    },
+    {
+      "name": "gibran_the_prophet",
+      "source_url": "https://www.gutenberg.org/cache/epub/58585/pg58585.txt",
+      "output_file": "assets/corpus/gold/gibran_the_prophet.txt",
+      "status": "ok",
+      "bytes": 89948,
+      "error": ""
+    },
+    {
+      "name": "aesops_fables",
+      "source_url": "https://www.gutenberg.org/cache/epub/21/pg21.txt",
+      "output_file": "assets/corpus/gold/aesops_fables.txt",
+      "status": "ok",
+      "bytes": 272341,
+      "error": ""
+    },
+    {
+      "name": "tagore_gitanjali",
+      "source_url": "https://www.gutenberg.org/cache/epub/7164/pg7164.txt",
+      "output_file": "assets/corpus/gold/tagore_gitanjali.txt",
+      "status": "ok",
+      "bytes": 98481,
+      "error": ""
+    },
+    {
+      "name": "dhammapada_muller",
+      "source_url": "https://www.gutenberg.org/cache/epub/2017/pg2017.txt",
+      "output_file": "assets/corpus/gold/dhammapada_muller.txt",
+      "status": "ok",
+      "bytes": 88622,
+      "error": ""
+    },
+    {
+      "name": "my_first_summer_in_the_sierra_muir",
+      "source_url": "https://www.gutenberg.org/cache/epub/32540/pg32540.txt",
+      "output_file": "assets/corpus/gold/my_first_summer_in_the_sierra_muir.txt",
+      "status": "ok",
+      "bytes": 374031,
+      "error": ""
+    },
+    {
+      "name": "wake_robin_burroughs",
+      "source_url": "https://www.gutenberg.org/cache/epub/6982/pg6982.txt",
+      "output_file": "assets/corpus/gold/wake_robin_burroughs.txt",
+      "status": "ok",
+      "bytes": 603755,
+      "error": ""
+    },
+    {
+      "name": "abirate_english_quotes",
+      "source_url": "hf://datasets/Abirate/english_quotes",
+      "output_file": "assets/corpus/silver/abirate_english_quotes.jsonl",
+      "status": "ok",
+      "bytes": 820285,
+      "error": ""
+    },
+    {
+      "name": "enso_svg",
+      "source_url": "generated-local",
+      "output_file": "assets/design/enso.svg",
+      "status": "ok",
+      "bytes": 228,
+      "error": ""
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <body style="margin:0; background:#b7ab9b; color:#332f2c; font-family:Arial,Helvetica,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:38px 0; background:#b7ab9b;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="620" cellpadding="0" cellspacing="0" style="max-width:620px; background:#e9ddd1; border:1px solid #d9cab9; border-radius:4px;">
+            <tr>
+              <td style="padding:26px 34px 8px;">
+                <p style="margin:0; font-size:12px; letter-spacing:0.16em; color:#756c62;">ZEN DAILY WISDOM</p>
+                <h1 style="margin:10px 0 0; color:#2f2a26; font-size:44px; line-height:1.05; font-weight:500;">Theme: {{ theme_of_day }}</h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:6px 34px 22px;">
+                <p style="margin:0; color:#6f665d; font-size:12px; letter-spacing:0.13em; text-transform:uppercase;">Thought of the day</p>
+                <p style="line-height:1.72; margin:9px 0 16px; font-size:24px; color:#38322f; font-weight:400;">{{ thought_of_day }}</p>
+                <p style="font-size:13px; color:#746c64; margin:0 0 18px;">Source: {{ citation }}</p>
+                <p style="margin:0 0 16px;">
+                  <a
+                    href="{{ calendar_add_link }}"
+                    style="display:inline-block; background:#2f5b4f; color:#ffffff; text-decoration:none; font-size:14px; padding:11px 16px; border-radius:999px;"
+                  >
+                    Add Theme to Google Calendar
+                  </a>
+                </p>
+                {% if rating_1 %}
+                <p style="font-size:13px; margin:0 0 8px; color:#706960;">How was today's message?</p>
+                <p style="font-size:14px; margin:0; color:#2f5b4f;">
+                  <a href="{{ rating_1 }}">1</a> |
+                  <a href="{{ rating_2 }}">2</a> |
+                  <a href="{{ rating_3 }}">3</a> |
+                  <a href="{{ rating_4 }}">4</a> |
+                  <a href="{{ rating_5 }}">5</a>
+                </p>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 34px 26px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td align="left">
+                      <span style="display:inline-block; width:48px; height:48px; border-radius:28px 24px 30px 26px; background:#cb9366;"></span>
+                    </td>
+                    <td align="center">
+                      <span style="display:inline-block; width:18px; height:18px; border-radius:999px; background:#3a312a;"></span>
+                    </td>
+                    <td align="right">
+                      <span style="display:inline-block; width:86px; height:42px; border-radius:46px; border:8px solid #ece2d7; box-sizing:border-box;"></span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
