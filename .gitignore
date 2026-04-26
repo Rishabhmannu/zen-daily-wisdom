@@ -8,13 +8,14 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-# Local OAuth creds: ignore contents of secrets/ but keep empty dir via .gitkeep
-secrets/*
-!secrets/.gitkeep
+# Local OAuth creds and local planning docs
+secrets/
 client_secret*.json
 .env
 .env.*
-!.env.example
+.env.example
+IMPLEMENTATION_PLAN.md
+MANUAL_ACTIONS_REQUIRED.md
 node_modules/
 **/node_modules/
 .pnpm-store-local/
