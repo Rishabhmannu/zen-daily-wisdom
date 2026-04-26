@@ -4,6 +4,20 @@ on:
   schedule:
     - cron: "30 1 * * *" # 07:00 IST
   workflow_dispatch:
+    inputs:
+      force:
+        description: "Force send even if today's message already exists"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      date:
+        description: "Optional run date (YYYY-MM-DD). Leave blank for today."
+        required: false
+        default: ""
+        type: string
 
 jobs:
   trigger-generate:
@@ -13,6 +27,8 @@ jobs:
         env:
           BACKEND_URL: ${{ secrets.BACKEND_URL }}
           INTERNAL_HMAC_SECRET: ${{ secrets.INTERNAL_HMAC_SECRET }}
+          FORCE_INPUT: ${{ github.event.inputs.force || 'false' }}
+          DATE_INPUT: ${{ github.event.inputs.date || '' }}
         run: |
           python - <<'PY'
           import hashlib
@@ -21,7 +37,9 @@ jobs:
           import os
           import urllib.request
 
-          payload = {"date": None, "force": False}
+          force_flag = str(os.getenv("FORCE_INPUT", "false")).strip().lower() == "true"
+          date_input = str(os.getenv("DATE_INPUT", "")).strip()
+          payload = {"date": (date_input or None), "force": force_flag}
           body = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
           sig = hmac.new(os.environ["INTERNAL_HMAC_SECRET"].encode("utf-8"), body, hashlib.sha256).hexdigest()
 
