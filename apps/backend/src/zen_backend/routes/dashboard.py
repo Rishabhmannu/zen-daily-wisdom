@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from datetime import date
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
+from zen_backend.config import settings
 from zen_backend.db.client import get_supabase_client
 from zen_backend.db.queries import (
     get_bandit_state,
@@ -16,12 +18,18 @@ from zen_backend.db.queries import (
 )
 from zen_backend.security.jwt_verify import verify_owner_user
 from zen_backend.services.generator import run_daily_generation
+from zen_backend.services.gmail_client import send_email_to_many
+from zen_backend.services.telegram_client import send_checkin_reminder
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 
 class SendNowRequest(BaseModel):
     force: bool = True
+
+
+class SendCheckinNowRequest(BaseModel):
+    window: str | None = None
 
 
 def _with_style_key(row: dict | None) -> dict | None:
@@ -115,4 +123,49 @@ def checkins(
         "days_considered": days,
     }
     return {"data": rows, "stats": stats}
+
+
+def _resolve_window(window: str | None) -> str:
+    if window in {"morning", "midday", "evening"}:
+        return window
+    now_ist = datetime.now(ZoneInfo("Asia/Kolkata"))
+    hour = now_ist.hour
+    if hour < 12:
+        return "morning"
+    if hour < 17:
+        return "midday"
+    return "evening"
+
+
+@router.post("/checkins/send-now")
+def send_checkin_now(
+    payload: SendCheckinNowRequest,
+    _: dict = Depends(verify_owner_user),
+) -> dict[str, object]:
+    window = _resolve_window(payload.window)
+    frontend_url = settings.frontend_base_url.rstrip("/")
+    checkin_url = f"{frontend_url}/dashboard"
+
+    delivery: dict[str, object] = {"window": window}
+    if (
+        settings.gmail_from_address
+        and settings.gmail_client_id
+        and settings.gmail_client_secret
+        and settings.gmail_refresh_token
+    ):
+        email_html = (
+            f"<p>Check-in reminder for <strong>{window}</strong>.</p>"
+            "<p>Please submit today's quick check-in (8 questions, 1-5 scale).</p>"
+            f'<p><a href="{checkin_url}">Open Dashboard Check-in</a></p>'
+        )
+        recipients = settings.gmail_to_addresses or [settings.gmail_from_address]
+        delivery["email"] = {
+            "recipients": recipients,
+            "messages": send_email_to_many(f"Zen Check-in ({window.title()})", email_html, recipients),
+        }
+
+    if settings.telegram_bot_token and settings.telegram_chat_id:
+        delivery["telegram"] = send_checkin_reminder(window=window, checkin_url=checkin_url)
+
+    return {"status": "sent", "delivery": delivery}
 

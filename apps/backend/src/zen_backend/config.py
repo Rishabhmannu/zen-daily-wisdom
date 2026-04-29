@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     supabase_db_dsn_pooler: str = Field(default="", alias="SUPABASE_DB_DSN_POOLER")
     public_base_url: str = Field(default="http://localhost:8000", alias="NEXT_PUBLIC_BACKEND_URL")
     frontend_base_url: str = Field(default="http://localhost:3000", alias="NEXT_PUBLIC_FRONTEND_URL")
+    cors_allowed_origins_raw: str = Field(default="", alias="CORS_ALLOWED_ORIGINS")
     allowed_emails_raw: str = Field(default="", alias="ALLOWED_EMAILS")
 
     @property
@@ -46,6 +47,13 @@ class Settings(BaseSettings):
         if not raw:
             return set()
         return {entry.strip().lower() for entry in raw.split(",") if entry.strip()}
+
+    @property
+    def cors_allowed_origins(self) -> list[str]:
+        raw = self.cors_allowed_origins_raw.strip()
+        if raw:
+            return [entry.strip().rstrip("/") for entry in raw.split(",") if entry.strip()]
+        return [self.frontend_base_url.rstrip("/"), "http://localhost:3000"]
 
     @property
     def gmail_to_addresses(self) -> list[str]:

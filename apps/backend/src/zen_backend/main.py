@@ -1,5 +1,7 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from zen_backend.config import settings
 from zen_backend.routes.checkin import router as checkin_router
 from zen_backend.routes.dashboard import router as dashboard_router
 from zen_backend.routes.feedback import router as feedback_router
@@ -13,6 +15,13 @@ def create_app() -> FastAPI:
         title="Zen Daily Wisdom Backend",
         version="0.1.0",
         description="FastAPI backend for personalized daily wisdom delivery",
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_allowed_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
     app.include_router(health_router)
     app.include_router(internal_router)

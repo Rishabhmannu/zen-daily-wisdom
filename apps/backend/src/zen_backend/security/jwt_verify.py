@@ -48,7 +48,7 @@ def verify_owner_user(
         raise HTTPException(status_code=403, detail="Email is not allowlisted.")
 
     owner_uid = settings.owner_uid.strip()
-    if owner_uid and str(user.get("id")) != owner_uid:
+    if owner_uid and not allowed and str(user.get("id")) != owner_uid:
         raise HTTPException(status_code=403, detail="User is not owner.")
     return user
 
