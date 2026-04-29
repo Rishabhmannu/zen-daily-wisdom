@@ -24,6 +24,7 @@ from zen_backend.services.gmail_client import send_email_to_many
 from zen_backend.services.calendar_client import upsert_theme_of_day_event
 from zen_backend.services.retrieval import choose_passage, fetch_ranked_passages
 from zen_backend.services.telegram_client import send_daily_text
+from zen_backend.security.calendar_link import sign_calendar_link
 from zen_backend.security.hmac_sig import sign_text
 
 _TEMPLATE_ENV = Environment(
@@ -137,7 +138,12 @@ def _build_feedback_link(sent_id: str, rating: int, channel: str) -> str:
     )
 
 
-def _build_calendar_add_link(run_date: date, theme_of_day: str, reflection: str, citation: str) -> str:
+def _build_google_calendar_url(
+    run_date: date, theme_of_day: str, reflection: str, citation: str
+) -> str:
+    """Direct Google Calendar `render?...` deep link (~250 chars). Used as
+    a fallback when we can't sign a backend redirect (e.g. no sent_id yet,
+    or the feedback link secret isn't set)."""
     start = run_date.strftime("%Y%m%d")
     end_date = (run_date + timedelta(days=1)).strftime("%Y%m%d")
     text = quote(f"Theme of the Day: {theme_of_day}")
@@ -146,6 +152,31 @@ def _build_calendar_add_link(run_date: date, theme_of_day: str, reflection: str,
         "https://calendar.google.com/calendar/render?action=TEMPLATE"
         f"&text={text}&dates={start}/{end_date}&details={details}"
     )
+
+
+def _build_calendar_add_link(
+    run_date: date,
+    theme_of_day: str,
+    reflection: str,
+    citation: str,
+    sent_id: str | None = None,
+) -> str:
+    """Return the URL we put in the daily email and Telegram message.
+
+    Prefers the short signed redirect on our own backend
+    (`/calendar/add?sent_id=...&sig=...`) so the iOS Telegram
+    confirmation dialog (and any other URL preview) shows a short,
+    recognizable address instead of a 250-character Google Calendar
+    query string. Falls back to the inline Google URL when we don't yet
+    have a sent_id or the link secret isn't configured.
+    """
+    if sent_id and settings.feedback_link_secret:
+        sig = sign_calendar_link(settings.feedback_link_secret, sent_id)
+        return (
+            f"{settings.public_base_url.rstrip('/')}/calendar/add"
+            f"?sent_id={sent_id}&sig={sig}"
+        )
+    return _build_google_calendar_url(run_date, theme_of_day, reflection, citation)
 
 
 def _normalize_thought(reflection: str) -> str:
@@ -335,7 +366,9 @@ def run_daily_generation(run_date: date, force: bool = False) -> dict[str, Any]:
         saved = insert_sent_history(client, sent_payload)
 
     sent_id = saved.get("id")
-    calendar_add_link = _build_calendar_add_link(run_date, theme_of_day, reflection, citation)
+    calendar_add_link = _build_calendar_add_link(
+        run_date, theme_of_day, reflection, citation, sent_id=str(sent_id) if sent_id else None
+    )
     email_html = _render_email_html(
         thought_of_day=reflection,
         theme_of_day=theme_of_day,
