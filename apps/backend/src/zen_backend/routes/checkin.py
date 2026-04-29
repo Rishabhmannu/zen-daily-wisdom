@@ -25,6 +25,10 @@ from zen_backend.security.checkin_token import (
     CheckinTokenError,
     verify_checkin_token,
 )
+from zen_backend.services.checkin_response import (
+    CheckinResponseBundle,
+    build_checkin_response_bundle,
+)
 
 router = APIRouter(prefix="/checkin", tags=["checkin"])
 
@@ -286,6 +290,30 @@ def checkin_by_token(token: str = Query(..., min_length=8, max_length=2048)) -> 
     }
 
 
+def _build_response_bundle_safely(
+    *,
+    window: str,
+    on_date: date_type,
+    answers: list[CheckinAnswer],
+    mood_score_weighted: float | None,
+    challenge_score: float | None,
+    note: str | None,
+) -> CheckinResponseBundle | None:
+    """Wrap the orchestrator so the endpoint never 500s on a Gemini /
+    retrieval blow-up — persistence already succeeded by this point."""
+    try:
+        return build_checkin_response_bundle(
+            window=window,
+            on_date=on_date,
+            answers=[answer.model_dump() for answer in answers],
+            mood_score_weighted=mood_score_weighted,
+            challenge_score=challenge_score,
+            note=note,
+        )
+    except Exception:  # noqa: BLE001
+        return None
+
+
 @router.post("/submit-by-token")
 def submit_checkin_by_token(payload: CheckinSubmitByTokenRequest) -> dict:
     secret = settings.effective_checkin_link_secret
@@ -311,13 +339,39 @@ def submit_checkin_by_token(payload: CheckinSubmitByTokenRequest) -> dict:
         note=payload.note,
         submitted_at=submitted_at,
     )
-    return {
+
+    bundle = _build_response_bundle_safely(
+        window=window,
+        on_date=on_date,
+        answers=payload.answers,
+        mood_score_weighted=(
+            float(result["scores"]["mood_score_weighted"])
+            if result["scores"].get("mood_score_weighted") is not None
+            else None
+        ),
+        challenge_score=(
+            float(result["scores"]["challenge_score"])
+            if result["scores"].get("challenge_score") is not None
+            else None
+        ),
+        note=payload.note,
+    )
+
+    response: dict[str, object] = {
         "status": "ok",
         "data": result["row"],
         "scores": result["scores"],
         "window": window,
         "date": token_payload["date"],
     }
+    if bundle is not None:
+        response["response"] = {
+            "message": bundle.message,
+            "message_source": bundle.message_source,
+            "passage": bundle.passage,
+            "passage_source": bundle.passage_source,
+        }
+    return response
 
 
 @router.post("/submit")

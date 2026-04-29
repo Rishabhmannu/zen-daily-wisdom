@@ -461,6 +461,95 @@ a {
   }
 }
 
+/* ---------- Post-submit observation + passage card ---------- */
+
+@keyframes zen-stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.zen-stagger {
+  opacity: 0;
+  animation: zen-stagger-in 480ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zen-stagger {
+    opacity: 1;
+    animation: none;
+  }
+  .zen-mood-pill {
+    animation: none;
+  }
+}
+
+.zen-observation {
+  margin: 14px 0 6px;
+  padding: 14px 16px 12px 18px;
+  border-left: 3px solid #2f5b4f;
+  background: #f7eee2;
+  border-radius: 0 14px 14px 0;
+  box-shadow: 0 4px 14px rgba(73, 56, 35, 0.05);
+}
+
+.zen-observation-text {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.65;
+  color: #2f3b2f;
+  font-style: italic;
+  letter-spacing: 0.005em;
+}
+
+.zen-passage-card {
+  margin: 14px 0 12px;
+  padding: 18px 20px 16px;
+  background: #fdf8f1;
+  border: 1px solid #e3d4c1;
+  border-radius: 18px;
+  box-shadow: 0 6px 18px rgba(73, 56, 35, 0.06);
+}
+
+.zen-passage-eyebrow {
+  margin: 0 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #7a6e62;
+  font-weight: 600;
+}
+
+.zen-passage-text {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #2f2a26;
+  white-space: pre-wrap;
+}
+
+.zen-passage-citation {
+  margin: 0;
+  font-size: 13px;
+  color: #6f665d;
+  font-style: italic;
+}
+
+@media (max-width: 520px) {
+  .zen-observation,
+  .zen-passage-card {
+    padding: 14px 14px 12px;
+  }
+  .zen-passage-text {
+    font-size: 1rem;
+  }
+}
+
 @media (max-width: 520px) {
   .zen-rating-row {
     grid-template-columns: repeat(5, 1fr);

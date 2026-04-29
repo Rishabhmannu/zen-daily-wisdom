@@ -31,6 +31,8 @@ class Settings(BaseSettings):
 
     gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
     gemini_daily_call_cap: int = Field(default=20, alias="GEMINI_DAILY_CALL_CAP")
+    checkin_gemini_timeout_s: float = Field(default=12.0, alias="CHECKIN_GEMINI_TIMEOUT_S")
+    enable_checkin_gemini_response: bool = Field(default=True, alias="ENABLE_CHECKIN_GEMINI_RESPONSE")
 
     supabase_url: str = Field(default="", alias="SUPABASE_URL")
     supabase_service_role_key: str = Field(default="", alias="SUPABASE_SERVICE_ROLE_KEY")

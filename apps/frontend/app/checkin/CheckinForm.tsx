@@ -28,6 +28,20 @@ function backendUrl(): string {
   return raw.replace(/\/$/, "");
 }
 
+type ResponsePassage = {
+  text: string;
+  source: string;
+  citation: string;
+  tradition: string;
+};
+
+type ResponseBundle = {
+  message?: string;
+  message_source?: string;
+  passage?: ResponsePassage | null;
+  passage_source?: string;
+};
+
 export function CheckinForm({ token, questions, window, checkinDate }: Props) {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [note, setNote] = useState<string>("");
@@ -35,6 +49,7 @@ export function CheckinForm({ token, questions, window, checkinDate }: Props) {
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [moodScore, setMoodScore] = useState<number | null>(null);
+  const [responseBundle, setResponseBundle] = useState<ResponseBundle | null>(null);
 
   const totalQuestions = questions.length;
   const answeredCount = useMemo(
@@ -82,9 +97,11 @@ export function CheckinForm({ token, questions, window, checkinDate }: Props) {
       }
       const result = (await response.json()) as {
         scores?: { mood_score_weighted?: number | null };
+        response?: ResponseBundle;
       };
       const score = result.scores?.mood_score_weighted ?? null;
       setMoodScore(typeof score === "number" ? score : null);
+      setResponseBundle(result.response ?? null);
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not submit check-in.");
@@ -105,22 +122,56 @@ export function CheckinForm({ token, questions, window, checkinDate }: Props) {
             : score >= 35
               ? "carrying weight"
               : "gentle with yourself today";
+    const observation = responseBundle?.message?.trim() || null;
+    const passage = responseBundle?.passage ?? null;
+    const passageHasText = passage && passage.text && passage.text.trim().length > 0;
     return (
       <div className="zen-checkin-thanks">
-        <h2 className="zen-checkin-thanks-title">Saved. Thank you.</h2>
+        <h2 className="zen-checkin-thanks-title zen-stagger" style={{ animationDelay: "0ms" }}>
+          Saved. Thank you.
+        </h2>
         {score !== null ? (
-          <div className="zen-mood-pill" aria-live="polite">
+          <div
+            className="zen-mood-pill zen-stagger"
+            aria-live="polite"
+            style={{ animationDelay: "80ms" }}
+          >
             <span className="zen-mood-pill-label">Mood</span>
             <span className="zen-mood-pill-value">{score}</span>
             <span className="zen-mood-pill-suffix">/ 100</span>
             {band ? <span className="zen-mood-pill-band">· {band}</span> : null}
           </div>
         ) : null}
-        <p className="zen-checkin-lede" style={{ marginBottom: 8 }}>
+        {observation ? (
+          <blockquote
+            className="zen-observation zen-stagger"
+            aria-label="Reflection from your check-in"
+            style={{ animationDelay: "180ms" }}
+          >
+            <p className="zen-observation-text">{observation}</p>
+          </blockquote>
+        ) : null}
+        {passageHasText ? (
+          <figure
+            className="zen-passage-card zen-stagger"
+            aria-label="A passage from the corpus"
+            style={{ animationDelay: "280ms" }}
+          >
+            <p className="zen-passage-eyebrow">Passage for this hour</p>
+            <p className="zen-passage-text">{passage!.text}</p>
+            <figcaption className="zen-passage-citation">
+              — {passage!.source ? passage!.source : "Unknown source"}
+              {passage!.citation ? `, ${passage!.citation}` : ""}
+            </figcaption>
+          </figure>
+        ) : null}
+        <p className="zen-checkin-lede zen-stagger" style={{ marginBottom: 8, animationDelay: "360ms" }}>
           Your {window} check-in for {checkinDate} has been recorded. Tomorrow&apos;s reflection
           will lean on what you said.
         </p>
-        <p className="zen-note">You can close this tab.</p>
+        <p className="zen-note zen-stagger" style={{ animationDelay: "440ms" }}>
+          You can close this tab.
+        </p>
       </div>
     );
   }
