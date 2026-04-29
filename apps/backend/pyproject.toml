@@ -23,7 +23,6 @@ dependencies = [
   "pyyaml>=6.0.2",
   "python-dotenv>=1.0.1",
   "psycopg[binary]>=3.2.0",
-  "pillow>=12.2.0",
 ]
 
 [project.optional-dependencies]

@@ -34,6 +34,7 @@ export function CheckinForm({ token, questions, window, checkinDate }: Props) {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [moodScore, setMoodScore] = useState<number | null>(null);
 
   const totalQuestions = questions.length;
   const answeredCount = useMemo(
@@ -79,6 +80,11 @@ export function CheckinForm({ token, questions, window, checkinDate }: Props) {
         }
         throw new Error(message);
       }
+      const result = (await response.json()) as {
+        scores?: { mood_score_weighted?: number | null };
+      };
+      const score = result.scores?.mood_score_weighted ?? null;
+      setMoodScore(typeof score === "number" ? score : null);
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not submit check-in.");
@@ -88,9 +94,28 @@ export function CheckinForm({ token, questions, window, checkinDate }: Props) {
   };
 
   if (submitted) {
+    const score = moodScore !== null ? Math.round(moodScore) : null;
+    const band =
+      score === null
+        ? null
+        : score >= 75
+          ? "steady and clear"
+          : score >= 55
+            ? "moving along"
+            : score >= 35
+              ? "carrying weight"
+              : "gentle with yourself today";
     return (
       <div className="zen-checkin-thanks">
         <h2 className="zen-checkin-thanks-title">Saved. Thank you.</h2>
+        {score !== null ? (
+          <div className="zen-mood-pill" aria-live="polite">
+            <span className="zen-mood-pill-label">Mood</span>
+            <span className="zen-mood-pill-value">{score}</span>
+            <span className="zen-mood-pill-suffix">/ 100</span>
+            {band ? <span className="zen-mood-pill-band">· {band}</span> : null}
+          </div>
+        ) : null}
         <p className="zen-checkin-lede" style={{ marginBottom: 8 }}>
           Your {window} check-in for {checkinDate} has been recorded. Tomorrow&apos;s reflection
           will lean on what you said.

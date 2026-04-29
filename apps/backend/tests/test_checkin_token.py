@@ -52,7 +52,10 @@ def test_by_token_endpoint_returns_questions(monkeypatch) -> None:
     body = response.json()
     assert body["window"] == "midday"
     assert body["date"] == "2026-04-29"
-    assert len(body["questions"]) == 8
+    # Midday set has 6 window-specific items.
+    assert len(body["questions"]) == 6
+    midday_keys = {q["key"] for q in body["questions"]}
+    assert {"current_focus", "current_energy", "current_calm"} <= midday_keys
 
 
 def test_by_token_endpoint_rejects_invalid(monkeypatch) -> None:
@@ -80,14 +83,20 @@ def test_submit_by_token_persists_payload(monkeypatch) -> None:
     token = issue_checkin_token(SECRET, "evening", date(2026, 4, 29))
     app = create_app()
     client = TestClient(app)
+    # Use the actual evening question set so weights apply.
     response = client.post(
         "/checkin/submit-by-token",
         json={
             "token": token,
             "channel": "email",
             "answers": [
-                {"key": "sleep_quality", "score": 4},
-                {"key": "stress", "score": 3},
+                {"key": "day_satisfaction", "score": 4},
+                {"key": "accomplishment", "score": 4},
+                {"key": "gratitude_moment", "score": 5},
+                {"key": "evening_calm", "score": 3},
+                {"key": "tomorrow_clarity", "score": 4},
+                {"key": "body_tiredness", "score": 3},
+                {"key": "evening_overwhelm", "score": 2},
             ],
             "note": "fine",
         },
@@ -96,6 +105,11 @@ def test_submit_by_token_persists_payload(monkeypatch) -> None:
     body = response.json()
     assert body["window"] == "evening"
     assert body["date"] == "2026-04-29"
+    assert "scores" in body
+    assert body["scores"]["mood_score_weighted"] is not None
+    assert 0 <= float(body["scores"]["mood_score_weighted"]) <= 100
     assert captured["window"] == "evening"
     assert captured["channel"] == "email"
     assert captured["checkin_date"] == "2026-04-29"
+    assert captured["mood_score_method"] == "weighted_v1"
+    assert captured["schema_version"] == 2

@@ -23,7 +23,7 @@ from zen_backend.services.gemini_client import generate_reflection
 from zen_backend.services.gmail_client import send_email_to_many
 from zen_backend.services.calendar_client import upsert_theme_of_day_event
 from zen_backend.services.retrieval import choose_passage, fetch_ranked_passages
-from zen_backend.services.telegram_client import send_card_message
+from zen_backend.services.telegram_client import send_daily_text
 from zen_backend.security.hmac_sig import sign_text
 
 _TEMPLATE_ENV = Environment(
@@ -108,10 +108,14 @@ def _adapt_preferences_with_checkin(
     updated_query = f"{query}; check-in context: {checkin_context_line}"
     updated_tags = list(required_tags)
 
-    if mood_avg is not None and mood_avg <= 2.6:
+    # mood_avg is now expressed on a 0-100 scale (CheckinSummary.mood_avg).
+    # Previous thresholds 2.6 and 4.0 on the legacy 1-5 scale map to:
+    #   (2.6 - 1) / 4 * 100 = 40   (low-mood threshold)
+    #   (4.0 - 1) / 4 * 100 = 75   (high-mood threshold)
+    if mood_avg is not None and mood_avg <= 40:
         updated_query += "; support overwhelm, reduce pressure, gentler framing"
         updated_tags.extend(["rest", "patience"])
-    elif mood_avg is not None and mood_avg >= 4.0:
+    elif mood_avg is not None and mood_avg >= 75:
         updated_query += "; sustain momentum with grounded discipline"
         updated_tags.extend(["discipline", "work"])
 
@@ -352,15 +356,19 @@ def run_daily_generation(run_date: date, force: bool = False) -> dict[str, Any]:
         channel_list.append("email")
 
     if settings.telegram_bot_token and settings.telegram_chat_id:
-        telegram_response = send_card_message(
-            thought_of_day=reflection,
-            theme_of_day=theme_of_day,
-            citation=citation,
-            calendar_add_link=calendar_add_link,
-            sent_id=sent_id,
-        )
-        delivery["telegram"] = telegram_response
-        channel_list.append("telegram")
+        try:
+            telegram_response = send_daily_text(
+                thought_of_day=reflection,
+                theme_of_day=theme_of_day,
+                citation=citation,
+                calendar_add_link=calendar_add_link,
+                sent_id=sent_id,
+            )
+            delivery["telegram"] = telegram_response
+            channel_list.append("telegram")
+        except Exception as exc:  # noqa: BLE001
+            # Don't fail the whole send if Telegram has a transient issue.
+            delivery["telegram"] = {"status": "error", "error": str(exc)}
 
     if (
         settings.gcal_client_id

@@ -409,6 +409,58 @@ a {
   color: #2f5b4f;
 }
 
+.zen-mood-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  background: linear-gradient(135deg, #f0e2cf 0%, #e9ddd1 100%);
+  border: 1px solid #d9cab9;
+  border-radius: 999px;
+  padding: 8px 16px;
+  margin: 6px 0 14px;
+  box-shadow: 0 4px 14px rgba(73, 56, 35, 0.08);
+  animation: zen-mood-pill-in 380ms ease both;
+  flex-wrap: wrap;
+}
+
+.zen-mood-pill-label {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #7a6e62;
+  font-weight: 600;
+}
+
+.zen-mood-pill-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #2f5b4f;
+  font-feature-settings: "tnum";
+}
+
+.zen-mood-pill-suffix {
+  font-size: 13px;
+  color: #7a6e62;
+}
+
+.zen-mood-pill-band {
+  font-size: 12px;
+  color: #5e564e;
+  font-style: italic;
+  margin-left: 2px;
+}
+
+@keyframes zen-mood-pill-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (max-width: 520px) {
   .zen-rating-row {
     grid-template-columns: repeat(5, 1fr);
