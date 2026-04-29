@@ -1,5 +1,26 @@
+import re
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_EMAIL_REGEX = re.compile(r"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$")
+
+
+def _clean_email_entry(raw: str) -> str | None:
+    """Defensive cleaner for env-var values that occasionally include the literal
+    `KEY=value` prefix or surrounding whitespace/quotes. Returns None if the
+    cleaned value is not a syntactically valid email address.
+    """
+    candidate = raw.strip().strip('"').strip("'")
+    if not candidate:
+        return None
+    if "=" in candidate:
+        # Drop any leading "GMAIL_TO_ADDRESSES=" (or similar) prefix that may
+        # have been accidentally pasted into the value field of the env var.
+        candidate = candidate.split("=", 1)[1].strip()
+    if not _EMAIL_REGEX.match(candidate):
+        return None
+    return candidate
 
 
 class Settings(BaseSettings):
@@ -18,6 +39,7 @@ class Settings(BaseSettings):
 
     internal_hmac_secret: str = Field(default="", alias="INTERNAL_HMAC_SECRET")
     feedback_link_secret: str = Field(default="", alias="FEEDBACK_LINK_SECRET")
+    checkin_link_secret: str = Field(default="", alias="CHECKIN_LINK_SECRET")
 
     telegram_bot_token: str = Field(default="", alias="TELEGRAM_BOT_TOKEN")
     telegram_chat_id: str = Field(default="", alias="TELEGRAM_CHAT_ID")
@@ -60,7 +82,31 @@ class Settings(BaseSettings):
         raw = self.gmail_to_addresses_raw.strip()
         if not raw:
             return []
-        return [entry.strip() for entry in raw.split(",") if entry.strip()]
+        cleaned: list[str] = []
+        seen: set[str] = set()
+        for entry in raw.split(","):
+            normalized = _clean_email_entry(entry)
+            if not normalized:
+                continue
+            lowered = normalized.lower()
+            if lowered in seen:
+                continue
+            seen.add(lowered)
+            cleaned.append(normalized)
+        return cleaned
+
+    @property
+    def effective_checkin_link_secret(self) -> str:
+        # Prefer a dedicated secret, but fall back to the feedback-link secret
+        # so an existing deployment doesn't need a new env var to start working.
+        if self.checkin_link_secret:
+            return self.checkin_link_secret
+        return self.feedback_link_secret
+
+    @property
+    def is_localhost_frontend(self) -> bool:
+        host = self.frontend_base_url.lower()
+        return host.startswith("http://localhost") or host.startswith("http://127.")
 
 
 settings = Settings()

@@ -1,14 +1,19 @@
 from __future__ import annotations
 
 import json
-from datetime import date, datetime
-from zoneinfo import ZoneInfo
+from datetime import date
 
 from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel
 
 from zen_backend.config import settings
 from zen_backend.security.hmac_sig import verify_payload
+from zen_backend.services.checkin_delivery import (
+    build_signed_checkin_url,
+    checkin_email_subject,
+    render_checkin_email_html,
+    resolve_window,
+)
 from zen_backend.services.generator import run_daily_generation
 from zen_backend.services.gmail_client import send_email_to_many
 from zen_backend.services.telegram_client import send_checkin_reminder
@@ -50,18 +55,6 @@ def generate(
     return run_daily_generation(run_date=run_date, force=payload.force)
 
 
-def _resolve_window(window: str | None) -> str:
-    if window in {"morning", "midday", "evening"}:
-        return window
-    now_ist = datetime.now(ZoneInfo("Asia/Kolkata"))
-    hour = now_ist.hour
-    if hour < 12:
-        return "morning"
-    if hour < 17:
-        return "midday"
-    return "evening"
-
-
 @router.post("/checkin-reminders")
 def checkin_reminders(
     payload: CheckinReminderRequest,
@@ -70,30 +63,40 @@ def checkin_reminders(
     raw = json.dumps(payload.model_dump(mode="json"), separators=(",", ":"), sort_keys=True).encode("utf-8")
     _require_signature(raw, x_internal_signature)
 
-    window = _resolve_window(payload.window)
-    frontend_url = settings.frontend_base_url.rstrip("/")
-    checkin_url = f"{frontend_url}/dashboard"
+    window = resolve_window(payload.window)
+    on_date = date.today()
 
-    delivery: dict[str, object] = {"window": window}
-    if (
-        settings.gmail_from_address
-        and settings.gmail_client_id
-        and settings.gmail_client_secret
-        and settings.gmail_refresh_token
-    ):
-        email_html = (
-            f"<p>Check-in reminder for <strong>{window}</strong>.</p>"
-            "<p>Please submit today's quick check-in (8 questions, 1-5 scale).</p>"
-            f'<p><a href="{checkin_url}">Open Dashboard Check-in</a></p>'
-        )
+    gmail_enabled = (
+        bool(settings.gmail_from_address)
+        and bool(settings.gmail_client_id)
+        and bool(settings.gmail_client_secret)
+        and bool(settings.gmail_refresh_token)
+    )
+    telegram_enabled = bool(settings.telegram_bot_token) and bool(settings.telegram_chat_id)
+
+    delivery: dict[str, object] = {"window": window, "date": on_date.isoformat()}
+    # Build the signed URL lazily — only when at least one channel will use it.
+    # This way, calling the endpoint with no delivery channels configured (e.g.
+    # in tests) doesn't trip the localhost guard.
+    checkin_url = (
+        build_signed_checkin_url(window=window, on_date=on_date)
+        if (gmail_enabled or telegram_enabled)
+        else None
+    )
+
+    if gmail_enabled and checkin_url:
+        email_html = render_checkin_email_html(window=window, checkin_url=checkin_url)
         recipients = settings.gmail_to_addresses or [settings.gmail_from_address]
         delivery["email"] = {
             "recipients": recipients,
-            "messages": send_email_to_many(f"Zen Check-in ({window.title()})", email_html, recipients),
+            "messages": send_email_to_many(checkin_email_subject(window), email_html, recipients),
         }
 
-    if settings.telegram_bot_token and settings.telegram_chat_id:
-        delivery["telegram"] = send_checkin_reminder(window=window, checkin_url=checkin_url)
+    if telegram_enabled and checkin_url:
+        try:
+            delivery["telegram"] = send_checkin_reminder(window=window, checkin_url=checkin_url)
+        except Exception as exc:  # noqa: BLE001 — surface error without crashing the whole batch
+            delivery["telegram"] = {"status": "error", "error": str(exc)}
 
     return {"status": "sent", "delivery": delivery}
 

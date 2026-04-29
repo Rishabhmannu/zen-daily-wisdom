@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import base64
+import logging
 from email.mime.text import MIMEText
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 from zen_backend.config import settings
+
+logger = logging.getLogger(__name__)
 
 GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
 
@@ -41,8 +44,29 @@ def send_email(subject: str, html_body: str, to_address: str) -> dict:
 
 
 def send_email_to_many(subject: str, html_body: str, to_addresses: list[str]) -> list[dict]:
+    """Send the same email to a list of recipients, tolerating per-recipient
+    failures. Returns a per-recipient delivery report so a single bad address
+    does not crash the whole batch.
+    """
     responses: list[dict] = []
     for to_address in to_addresses:
-        responses.append(send_email(subject, html_body, to_address))
+        try:
+            response = send_email(subject, html_body, to_address)
+            responses.append(
+                {
+                    "recipient": to_address,
+                    "status": "ok",
+                    "message_id": response.get("id"),
+                }
+            )
+        except Exception as exc:  # noqa: BLE001 — we want to surface any error per-recipient
+            logger.warning("Failed to send email to %s: %s", to_address, exc)
+            responses.append(
+                {
+                    "recipient": to_address,
+                    "status": "error",
+                    "error": str(exc),
+                }
+            )
     return responses
 

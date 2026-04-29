@@ -170,3 +170,260 @@ a {
   font-size: 1.15rem;
   color: var(--text);
 }
+
+/* ---------- Public /checkin page ---------- */
+
+.zen-checkin-shell {
+  max-width: 720px;
+  padding-top: 56px;
+  padding-bottom: 72px;
+}
+
+.zen-checkin-card {
+  background: #fdf8f1;
+  border: 1px solid #e3d4c1;
+  border-radius: 22px;
+  padding: 28px 28px 26px;
+  box-shadow: 0 16px 44px rgba(73, 56, 35, 0.08);
+}
+
+.zen-checkin-eyebrow-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.zen-checkin-meta {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7a6e62;
+}
+
+.zen-checkin-title {
+  margin: 4px 0 8px;
+  font-size: 2rem;
+  letter-spacing: 0.005em;
+  color: #2f2a26;
+}
+
+.zen-checkin-lede {
+  margin: 0 0 18px;
+  color: #5e564e;
+  line-height: 1.65;
+}
+
+.zen-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 6px 0 22px;
+}
+
+.zen-progress-track {
+  flex: 1;
+  height: 8px;
+  background: #f1e6d8;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.zen-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2f5b4f 0%, #6c9b7a 100%);
+  border-radius: 999px;
+  transition: width 220ms ease;
+}
+
+.zen-progress-label {
+  font-size: 12px;
+  color: #7a6e62;
+  white-space: nowrap;
+}
+
+.zen-checkin-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.zen-checkin-question {
+  background: #f7eee2;
+  border: 1px solid #e3d4c1;
+  border-radius: 16px;
+  padding: 16px 18px 18px;
+}
+
+.zen-checkin-question-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.zen-checkin-question-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: #2f5b4f;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.zen-checkin-question-label {
+  margin: 2px 0 0;
+  color: #38322d;
+  line-height: 1.5;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.zen-rating-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.zen-rating-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: #fff;
+  color: #3a322c;
+  border: 1px solid #d9cab9;
+  border-radius: 12px;
+  padding: 10px 6px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 120ms ease, background 160ms ease, border-color 160ms ease,
+    color 160ms ease, box-shadow 160ms ease;
+}
+
+.zen-rating-btn:hover {
+  border-color: #2f5b4f;
+  transform: translateY(-1px);
+}
+
+.zen-rating-btn:focus-visible {
+  outline: 2px solid #2f5b4f;
+  outline-offset: 2px;
+}
+
+.zen-rating-btn--active {
+  background: #2f5b4f;
+  border-color: #2f5b4f;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(47, 91, 79, 0.22);
+}
+
+.zen-rating-btn-score {
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.zen-rating-btn-hint {
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  color: inherit;
+  opacity: 0.78;
+  text-align: center;
+}
+
+.zen-checkin-note {
+  margin-top: 18px;
+  display: grid;
+  gap: 6px;
+}
+
+.zen-checkin-note-label {
+  font-size: 13px;
+  color: #5e564e;
+}
+
+.zen-checkin-note-optional {
+  color: #968a7d;
+  font-weight: 400;
+}
+
+.zen-checkin-note-input {
+  width: 100%;
+  resize: vertical;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #d9cab9;
+  background: #fff;
+  color: #2f3b2f;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.zen-checkin-note-input:focus-visible {
+  outline: 2px solid #2f5b4f;
+  outline-offset: 2px;
+  border-color: #2f5b4f;
+}
+
+.zen-checkin-submit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+.zen-checkin-submit {
+  padding: 12px 20px;
+  font-size: 15px;
+  border-radius: 999px;
+}
+
+.zen-checkin-meta-line {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: #7a6e62;
+}
+
+.zen-checkin-thanks {
+  text-align: left;
+  padding: 6px 0 4px;
+}
+
+.zen-checkin-thanks-title {
+  margin: 0 0 6px;
+  font-size: 1.4rem;
+  color: #2f5b4f;
+}
+
+@media (max-width: 520px) {
+  .zen-rating-row {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+  .zen-rating-btn {
+    padding: 9px 4px;
+  }
+  .zen-rating-btn-hint {
+    display: none;
+  }
+  .zen-checkin-card {
+    padding: 22px 18px 20px;
+  }
+  .zen-checkin-title {
+    font-size: 1.65rem;
+  }
+}

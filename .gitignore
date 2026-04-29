@@ -21,6 +21,7 @@ node_modules/
 .pnpm-store-local/
 .pnpm-store/
 apps/frontend/.next/
+**/tsconfig.tsbuildinfo
 dist/
 build/
 
