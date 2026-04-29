@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from zen_backend.config import settings
-from zen_backend.routes.calendar import router as calendar_router
 from zen_backend.routes.checkin import router as checkin_router
 from zen_backend.routes.dashboard import router as dashboard_router
 from zen_backend.routes.feedback import router as feedback_router
@@ -30,7 +29,6 @@ def create_app() -> FastAPI:
     app.include_router(dashboard_router)
     app.include_router(telegram_router)
     app.include_router(checkin_router)
-    app.include_router(calendar_router)
     return app
 
 

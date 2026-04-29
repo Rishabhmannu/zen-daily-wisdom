@@ -39,7 +39,7 @@ _QUESTIONS_BY_WINDOW: dict[str, list[dict[str, object]]] = {
     "morning": [
         {"key": "sleep_quality", "label": "How would you rate last night's sleep?", "scale": [1, 5]},
         {"key": "morning_energy", "label": "How is your energy waking up?", "scale": [1, 5]},
-        {"key": "morning_calm", "label": "How calm vs anxious are you starting the day?", "scale": [1, 5]},
+        {"key": "morning_calm", "label": "How calm do you feel starting the day?", "scale": [1, 5]},
         {"key": "body_readiness", "label": "How easy does your body feel to move right now?", "scale": [1, 5]},
         {"key": "morning_clarity", "label": "How clear is your top priority for today?", "scale": [1, 5]},
         {"key": "motivation", "label": "How motivated are you to begin?", "scale": [1, 5]},
@@ -48,7 +48,7 @@ _QUESTIONS_BY_WINDOW: dict[str, list[dict[str, object]]] = {
     "midday": [
         {"key": "current_focus", "label": "How focused do you feel right now?", "scale": [1, 5]},
         {"key": "current_energy", "label": "How is your energy at this point in the day?", "scale": [1, 5]},
-        {"key": "current_calm", "label": "How calm vs anxious are you right now?", "scale": [1, 5]},
+        {"key": "current_calm", "label": "How calm do you feel right now?", "scale": [1, 5]},
         {"key": "progress_so_far", "label": "How much progress on today's priority?", "scale": [1, 5]},
         {"key": "current_pressure", "label": "How pressured does this hour feel?", "scale": [1, 5]},
         {"key": "social_drain", "label": "How socially depleted do you feel right now?", "scale": [1, 5]},
