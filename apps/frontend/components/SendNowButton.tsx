@@ -34,23 +34,10 @@ export function SendNowButton({ accessToken }: Props) {
 
   return (
     <div>
-      <button
-        onClick={onSendNow}
-        disabled={loading}
-        style={{
-          padding: "10px 14px",
-          borderRadius: 8,
-          border: "1px solid #2E4A3C",
-          background: loading ? "#d8d8d8" : "#2E4A3C",
-          color: "#fff",
-          cursor: loading ? "not-allowed" : "pointer"
-        }}
-      >
+      <button onClick={onSendNow} disabled={loading} className="zen-button">
         {loading ? "Sending..." : "Send Now"}
       </button>
-      {status ? (
-        <p style={{ marginTop: 8, marginBottom: 0, fontSize: 13, color: "#3A3A3A" }}>{status}</p>
-      ) : null}
+      {status ? <p className="zen-note" style={{ marginTop: 8 }}>{status}</p> : null}
     </div>
   );
 }

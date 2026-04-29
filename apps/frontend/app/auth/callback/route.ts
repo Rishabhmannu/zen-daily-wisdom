@@ -8,8 +8,10 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const tokenHash = url.searchParams.get("token_hash");
+  const token = url.searchParams.get("token");
   const type = url.searchParams.get("type");
-  const next = url.searchParams.get("next") || "/dashboard";
+  const nextParam = url.searchParams.get("next") || "/dashboard";
+  const next = nextParam.startsWith("/") ? nextParam : "/dashboard";
   const redirectResponse = NextResponse.redirect(new URL(next, request.url));
 
   const cookieStore = await cookies();
@@ -36,9 +38,32 @@ export async function GET(request: Request) {
   );
 
   if (code) {
-    await supabase.auth.exchangeCodeForSession(code);
-  } else if (tokenHash && type) {
-    await supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as EmailOtpType });
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("next", next);
+      loginUrl.searchParams.set("error", error.message || "auth_exchange_failed");
+      return NextResponse.redirect(loginUrl);
+    }
+  } else {
+    const otpToken = tokenHash || token;
+    if (otpToken && type) {
+      const { error } = await supabase.auth.verifyOtp({
+        token_hash: otpToken,
+        type: type as EmailOtpType
+      });
+      if (error) {
+        const loginUrl = new URL("/login", request.url);
+        loginUrl.searchParams.set("next", next);
+        loginUrl.searchParams.set("error", error.message || "otp_verification_failed");
+        return NextResponse.redirect(loginUrl);
+      }
+    } else {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("next", next);
+      loginUrl.searchParams.set("error", "missing_auth_params");
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
   return redirectResponse;

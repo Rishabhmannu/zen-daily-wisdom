@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     gmail_client_secret: str = Field(default="", alias="GMAIL_CLIENT_SECRET")
     gmail_refresh_token: str = Field(default="", alias="GMAIL_REFRESH_TOKEN")
     gmail_from_address: str = Field(default="", alias="GMAIL_FROM_ADDRESS")
+    gmail_to_addresses_raw: str = Field(default="", alias="GMAIL_TO_ADDRESSES")
 
     gcal_client_id: str = Field(default="", alias="GCAL_CLIENT_ID")
     gcal_client_secret: str = Field(default="", alias="GCAL_CLIENT_SECRET")
@@ -45,6 +46,13 @@ class Settings(BaseSettings):
         if not raw:
             return set()
         return {entry.strip().lower() for entry in raw.split(",") if entry.strip()}
+
+    @property
+    def gmail_to_addresses(self) -> list[str]:
+        raw = self.gmail_to_addresses_raw.strip()
+        if not raw:
+            return []
+        return [entry.strip() for entry in raw.split(",") if entry.strip()]
 
 
 settings = Settings()

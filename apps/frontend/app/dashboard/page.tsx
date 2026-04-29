@@ -40,78 +40,62 @@ export default async function DashboardPage() {
   const checkinStats = checkinResult.status === "fulfilled" ? checkinResult.value.stats : null;
 
   return (
-    <main style={{ maxWidth: 960, margin: "0 auto", padding: "48px 20px" }}>
-      <h1 style={{ marginTop: 0 }}>Dashboard</h1>
-      <p style={{ lineHeight: 1.6 }}>Live backend data is now wired into this page.</p>
+    <main className="zen-shell">
+      <section className="zen-card">
+        <span className="zen-chip">Dashboard</span>
+        <h1 className="zen-title">Your daily wisdom control center</h1>
+        <p className="zen-subtitle">
+          Track today&apos;s message quality, check-in completion, style performance, and send status in one
+          place.
+        </p>
+      </section>
 
-      <section
-        style={{
-          background: "#fff",
-          border: "1px solid #ddd",
-          borderRadius: 8,
-          padding: 16,
-          marginBottom: 16
-        }}
-      >
-        <h2 style={{ marginTop: 0 }}>System Health</h2>
-        <p style={{ margin: "8px 0" }}>
+      <section className="zen-card">
+        <h2 className="zen-section-title">System Health</h2>
+        <p className="zen-row">
           Status: <strong>{health?.status ?? "unavailable"}</strong>
         </p>
-        <p style={{ margin: "8px 0" }}>
+        <p className="zen-row">
           Supabase configured: <strong>{String(health?.checks?.supabase_configured ?? false)}</strong>
         </p>
-        <p style={{ margin: "8px 0" }}>
+        <p className="zen-row">
           Gemini configured: <strong>{String(health?.checks?.gemini_configured ?? false)}</strong>
         </p>
         <SendNowButton accessToken={token} />
       </section>
 
-      <section
-        style={{
-          background: "#fff",
-          border: "1px solid #ddd",
-          borderRadius: 8,
-          padding: 16,
-          marginBottom: 16
-        }}
-      >
-        <h2 style={{ marginTop: 0 }}>Today</h2>
+      <section className="zen-card">
+        <h2 className="zen-section-title">Today</h2>
         {today ? (
           <>
-            <p style={{ margin: "8px 0" }}>
+            <p className="zen-row">
               Date: <strong>{today.sent_date}</strong>
             </p>
-            <p style={{ margin: "8px 0" }}>
+            <p className="zen-row">
               Tradition: <strong>{today.arm_tradition ?? "n/a"}</strong>
             </p>
-            <p style={{ margin: "8px 0" }}>
+            <p className="zen-row">
               Theme: <strong>{today.theme_of_day ?? "n/a"}</strong>
             </p>
-            <p style={{ margin: "8px 0" }}>
+            <p className="zen-row">
               Style: <strong>{styleLabel(today.style_key)}</strong>
             </p>
-            <p style={{ whiteSpace: "pre-line", lineHeight: 1.6 }}>{today.llm_output ?? ""}</p>
+            <p className="zen-subtitle" style={{ marginBottom: 0, whiteSpace: "pre-line" }}>
+              {today.llm_output ?? ""}
+            </p>
           </>
         ) : (
-          <p>No message found for today yet.</p>
+          <p className="zen-note">No message found for today yet.</p>
         )}
       </section>
 
-      <section
-        style={{
-          background: "#fff",
-          border: "1px solid #ddd",
-          borderRadius: 8,
-          padding: 16,
-          marginBottom: 16
-        }}
-      >
-        <h2 style={{ marginTop: 0 }}>Check-ins (14 Days)</h2>
-        <p style={{ margin: "8px 0" }}>
+      <section className="zen-card">
+        <h2 className="zen-section-title">Check-ins (14 Days)</h2>
+        <p className="zen-row">
           Completion rate:{" "}
           <strong>{checkinStats ? `${(checkinStats.completion_rate * 100).toFixed(1)}%` : "n/a"}</strong>
         </p>
-        <p style={{ margin: "8px 0" }}>
+        <p className="zen-row">
           Avg mood:{" "}
           <strong>
             {checkinStats?.avg_mood !== null && checkinStats?.avg_mood !== undefined
@@ -120,7 +104,7 @@ export default async function DashboardPage() {
           </strong>
           {" / 5"}
         </p>
-        <p style={{ margin: "8px 0" }}>
+        <p className="zen-row">
           Avg challenge load:{" "}
           <strong>
             {checkinStats?.avg_challenge !== null && checkinStats?.avg_challenge !== undefined
@@ -130,56 +114,38 @@ export default async function DashboardPage() {
           {" / 5"}
         </p>
         {checkins.length > 0 ? (
-          <p style={{ margin: "8px 0", color: "#555" }}>
+          <p className="zen-note">
             Last check-in: {checkins[0]?.checkin_date} ({checkins[0]?.window})
           </p>
         ) : (
-          <p style={{ margin: "8px 0", color: "#555" }}>No check-ins recorded yet.</p>
+          <p className="zen-note">No check-ins recorded yet.</p>
         )}
       </section>
 
-      <section
-        style={{
-          background: "#fff",
-          border: "1px solid #ddd",
-          borderRadius: 8,
-          padding: 16,
-          marginBottom: 16
-        }}
-      >
-        <h2 style={{ marginTop: 0 }}>Recent History</h2>
+      <section className="zen-card">
+        <h2 className="zen-section-title">Recent History</h2>
         {history.length === 0 ? (
-          <p>No recent history.</p>
+          <p className="zen-note">No recent history.</p>
         ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+          <div className="zen-table-wrap">
+            <table className="zen-table">
               <thead>
                 <tr>
-                  <th style={{ textAlign: "left", borderBottom: "1px solid #ddd", padding: 8 }}>Date</th>
-                  <th style={{ textAlign: "left", borderBottom: "1px solid #ddd", padding: 8 }}>
-                    Tradition
-                  </th>
-                  <th style={{ textAlign: "left", borderBottom: "1px solid #ddd", padding: 8 }}>Tone</th>
-                  <th style={{ textAlign: "left", borderBottom: "1px solid #ddd", padding: 8 }}>Style</th>
-                  <th style={{ textAlign: "left", borderBottom: "1px solid #ddd", padding: 8 }}>
-                    Feedback
-                  </th>
+                  <th>Date</th>
+                  <th>Tradition</th>
+                  <th>Tone</th>
+                  <th>Style</th>
+                  <th>Feedback</th>
                 </tr>
               </thead>
               <tbody>
                 {history.map((item) => (
                   <tr key={item.id}>
-                    <td style={{ borderBottom: "1px solid #f0f0f0", padding: 8 }}>{item.sent_date}</td>
-                    <td style={{ borderBottom: "1px solid #f0f0f0", padding: 8 }}>
-                      {item.arm_tradition ?? "n/a"}
-                    </td>
-                    <td style={{ borderBottom: "1px solid #f0f0f0", padding: 8 }}>
-                      {item.arm_tone ?? "n/a"}
-                    </td>
-                    <td style={{ borderBottom: "1px solid #f0f0f0", padding: 8 }}>
-                      {styleLabel(item.style_key)}
-                    </td>
-                    <td style={{ borderBottom: "1px solid #f0f0f0", padding: 8 }}>
+                    <td>{item.sent_date}</td>
+                    <td>{item.arm_tradition ?? "n/a"}</td>
+                    <td>{item.arm_tone ?? "n/a"}</td>
+                    <td>{styleLabel(item.style_key)}</td>
+                    <td>
                       {(item.feedback ?? []).length > 0
                         ? (item.feedback ?? [])
                             .map((f) => `${f.rating ?? "?"} (${f.channel ?? "unknown"})`)
@@ -194,17 +160,10 @@ export default async function DashboardPage() {
         )}
       </section>
 
-      <section
-        style={{
-          background: "#fff",
-          border: "1px solid #ddd",
-          borderRadius: 8,
-          padding: 16
-        }}
-      >
-        <h2 style={{ marginTop: 0 }}>Bandit Arms (Top)</h2>
+      <section className="zen-card">
+        <h2 className="zen-section-title">Bandit Arms (Top)</h2>
         {bandit.length === 0 ? (
-          <p>No bandit state available yet. Add feedback to populate this.</p>
+          <p className="zen-note">No bandit state available yet. Add feedback to populate this.</p>
         ) : (
           <ul style={{ margin: 0, paddingLeft: 18 }}>
             {bandit.map((arm) => (

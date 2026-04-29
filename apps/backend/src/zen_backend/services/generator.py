@@ -20,7 +20,7 @@ from zen_backend.db.queries import (
 )
 from zen_backend.services.checkin_context import build_checkin_summary
 from zen_backend.services.gemini_client import generate_reflection
-from zen_backend.services.gmail_client import send_email
+from zen_backend.services.gmail_client import send_email_to_many
 from zen_backend.services.calendar_client import upsert_theme_of_day_event
 from zen_backend.services.retrieval import choose_passage, fetch_ranked_passages
 from zen_backend.services.telegram_client import send_card_message
@@ -346,8 +346,9 @@ def run_daily_generation(run_date: date, force: bool = False) -> dict[str, Any]:
         and settings.gmail_client_secret
         and settings.gmail_refresh_token
     ):
-        email_response = send_email(email_subject, email_html, settings.gmail_from_address)
-        delivery["email"] = email_response
+        recipients = settings.gmail_to_addresses or [settings.gmail_from_address]
+        email_responses = send_email_to_many(email_subject, email_html, recipients)
+        delivery["email"] = {"recipients": recipients, "messages": email_responses}
         channel_list.append("email")
 
     if settings.telegram_bot_token and settings.telegram_chat_id:

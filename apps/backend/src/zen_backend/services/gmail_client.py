@@ -39,3 +39,10 @@ def send_email(subject: str, html_body: str, to_address: str) -> dict:
     response = service.users().messages().send(userId="me", body={"raw": encoded}).execute()
     return response
 
+
+def send_email_to_many(subject: str, html_body: str, to_addresses: list[str]) -> list[dict]:
+    responses: list[dict] = []
+    for to_address in to_addresses:
+        responses.append(send_email(subject, html_body, to_address))
+    return responses
+

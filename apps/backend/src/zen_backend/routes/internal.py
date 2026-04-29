@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from zen_backend.config import settings
 from zen_backend.security.hmac_sig import verify_payload
 from zen_backend.services.generator import run_daily_generation
-from zen_backend.services.gmail_client import send_email
+from zen_backend.services.gmail_client import send_email_to_many
 from zen_backend.services.telegram_client import send_checkin_reminder
 
 router = APIRouter(prefix="/internal", tags=["internal"])
@@ -86,7 +86,11 @@ def checkin_reminders(
             "<p>Please submit today's quick check-in (8 questions, 1-5 scale).</p>"
             f'<p><a href="{checkin_url}">Open Dashboard Check-in</a></p>'
         )
-        delivery["email"] = send_email(f"Zen Check-in ({window.title()})", email_html, settings.gmail_from_address)
+        recipients = settings.gmail_to_addresses or [settings.gmail_from_address]
+        delivery["email"] = {
+            "recipients": recipients,
+            "messages": send_email_to_many(f"Zen Check-in ({window.title()})", email_html, recipients),
+        }
 
     if settings.telegram_bot_token and settings.telegram_chat_id:
         delivery["telegram"] = send_checkin_reminder(window=window, checkin_url=checkin_url)

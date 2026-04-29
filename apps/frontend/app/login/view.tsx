@@ -15,6 +15,13 @@ export function LoginForm({ nextPath }: Props) {
   const [cooldownLeft, setCooldownLeft] = useState(0);
 
   useEffect(() => {
+    const search = new URLSearchParams(window.location.search);
+    const queryError = search.get("error");
+    if (queryError) {
+      setError(decodeURIComponent(queryError.replace(/\+/g, " ")));
+      return;
+    }
+
     const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
     if (!hash) {
       return;
@@ -89,30 +96,24 @@ export function LoginForm({ nextPath }: Props) {
   }
 
   return (
-    <form onSubmit={onSubmit} style={{ display: "grid", gap: 10, marginTop: 16 }}>
+    <form onSubmit={onSubmit} className="zen-grid" style={{ marginTop: 10 }}>
       <input
         type="email"
         required
         placeholder="you@example.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #ddd" }}
+        className="zen-input"
       />
       <button
         type="submit"
         disabled={cooldownLeft > 0}
-        style={{
-          padding: "10px 14px",
-          borderRadius: 8,
-          border: "1px solid #222",
-          opacity: cooldownLeft > 0 ? 0.6 : 1,
-          cursor: cooldownLeft > 0 ? "not-allowed" : "pointer"
-        }}
+        className="zen-button"
       >
         {cooldownLeft > 0 ? `Wait ${cooldownLeft}s` : "Send magic link"}
       </button>
-      {status ? <p style={{ margin: 0, color: "#225f32" }}>{status}</p> : null}
-      {error ? <p style={{ margin: 0, color: "#8a2f2f" }}>{error}</p> : null}
+      {status ? <p className="zen-success">{status}</p> : null}
+      {error ? <p className="zen-error">{error}</p> : null}
     </form>
   );
 }
