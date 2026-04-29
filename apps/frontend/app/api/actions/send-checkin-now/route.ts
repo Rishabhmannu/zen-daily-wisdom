@@ -27,7 +27,15 @@ export async function POST(request: NextRequest) {
 
   const text = await response.text();
   if (!response.ok) {
-    return NextResponse.json({ error: text || "Failed to send check-in." }, { status: response.status });
+    try {
+      const payload = JSON.parse(text) as { detail?: string; error?: string };
+      return NextResponse.json(
+        { error: payload.detail || payload.error || "Failed to send check-in." },
+        { status: response.status }
+      );
+    } catch {
+      return NextResponse.json({ error: text || "Failed to send check-in." }, { status: response.status });
+    }
   }
   return new NextResponse(text, {
     status: 200,

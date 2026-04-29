@@ -1,4 +1,5 @@
 import { SendNowButton } from "@/components/SendNowButton";
+import { LogoutButton } from "@/components/LogoutButton";
 import { fetchBandit, fetchCheckins, fetchHealth, fetchHistory, fetchToday } from "@/lib/api";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
@@ -47,7 +48,10 @@ export default async function DashboardPage() {
   return (
     <main className="zen-shell">
       <section className="zen-card">
-        <span className="zen-chip">Dashboard</span>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+          <span className="zen-chip">Dashboard</span>
+          <LogoutButton />
+        </div>
         <h1 className="zen-title">Your daily wisdom control center</h1>
         <p className="zen-subtitle">
           Track today&apos;s message quality, check-in completion, style performance, and send status in one
