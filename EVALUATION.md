@@ -11,7 +11,7 @@ Each surface lives in a notebook under `notebooks/`. Two are reproducible from a
 
 ---
 
-## Targets (from `IMPLEMENTATION_PLAN.md` §1)
+## Targets
 
 | Metric | Target | Status |
 |---|---|---|
@@ -65,7 +65,7 @@ For each of three regimes — pure Thompson (ε = 0), Thompson + epsilon-greedy 
 
 The bandit concentrates ~80 % of pulls on the top two arms by round 200, despite only Beta(1, 1) priors at the start. The cost of the production ε = 0.15 over pure Thompson is small (single-digit difference at 600 rounds) and buys tighter regret variance — the 30-seed ±1 σ band is visibly narrower under the ε-greedy policy on the unlucky seeds.
 
-For a single user submitting one daily check-in, 200 rounds is roughly **6 months of feedback**. The plan's "first 100 days on super-arms" guidance (ADR-007) is consistent with what the math says.
+For a single user submitting one daily check-in, 200 rounds is roughly **6 months of feedback**, which is consistent with the design choice to start on coarsened super-arms before the full `tradition × tone × length × tier` arm space.
 
 The top arm doesn't fully converge to its true P even by round 600 — that's expected; with random rewards and partial pulling, posteriors settle near but not at the truth. What matters operationally is that the *ranking* is correct, which it is.
 
@@ -165,7 +165,7 @@ Two dependencies before the headline number is meaningful:
 1. **Add `passages.json` to the export script** so we can join `sent_history.passage_ids → passages.text` rather than approximating with `llm_output` itself.
 2. **Accumulate ≥ 30 `sent_history` rows.** At one daily send, that's a month of usage.
 
-Both are tracked in `IMPLEMENTATION_PLAN.md`'s priority queue.
+Both are on the project backlog.
 
 ---
 
@@ -224,7 +224,7 @@ uv run --project apps/backend jupyter lab rag_eval.ipynb
 ## What's intentionally out of scope (today)
 
 - **Prompt ablation** (3 prompt variants × 10 outputs × manual blind scoring on a 1-5 rubric for tone/faithfulness/literary-quality/non-cliché). The plan §12 lays this out; the data is small enough today that a serious ablation isn't yet worth the manual scoring time. Revisit at the 6-week mark when you have more recent reflections to compare across versions.
-- **Personalization lift after 4 weeks** — the bandit replay analysis comparing actual selection vs uniform baseline. Needs a few weeks of production feedback to be meaningful; tracked under PR-D's "next steps" in the implementation plan.
+- **Personalization lift after 4 weeks** — bandit replay analysis comparing actual selection vs uniform baseline. Needs a few weeks of production feedback to be meaningful.
 - **Live recall@k numbers** — framework shipped, run is one command but waits on you having the M4 in front of you with credentials loaded.
 
 These are the things that get added to this document in a follow-up edit, not today.

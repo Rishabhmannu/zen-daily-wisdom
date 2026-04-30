@@ -14,7 +14,7 @@ The `Arm` here is intentionally just `(tradition, tone)` — the planned
 fully-decomposed arm space (`tradition × tone × length × tier`) is too
 sparse for the first ~100 days of feedback. We can graduate to the full
 space once `bandit_state` has ≥ 300 rows and the per-arm posteriors are
-no longer flat. See ADR-007 in `IMPLEMENTATION_PLAN.md`.
+no longer flat.
 """
 
 from __future__ import annotations

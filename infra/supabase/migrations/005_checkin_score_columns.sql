@@ -17,7 +17,7 @@ comment on column checkin_responses.mood_score is
   'Legacy: raw mean of 1-5 answer scores. Mathematically incoherent for mixed positive/reverse-coded items. Retained for back-compat. Prefer mood_score_weighted.';
 
 comment on column checkin_responses.mood_score_weighted is
-  'Headline 0-100 mood score, computed as weighted sum of goodness-normalized answers (positive items: (s-1)/4; reverse items: 1-(s-1)/4) using window-specific weights summing to 1.0. See IMPLEMENTATION_PLAN.md section 12.5.';
+  'Headline 0-100 mood score, computed as a weighted sum of goodness-normalized answers (positive items: (s-1)/4; reverse-coded items: 1-(s-1)/4) using window-specific weights that sum to 1.0.';
 
 comment on column checkin_responses.mood_score_equal is
   'Equal-weight 0-100 mood score (1/n weights). Persisted alongside the weighted score so the differential weighting can be ablated against the unweighted backstop.';

@@ -6,7 +6,10 @@ goodness-normalization step (positive items: (s-1)/4; reverse items:
 1-(s-1)/4) before applying the per-item weights. Both the weighted and the
 equal-weight scores are persisted for ablation.
 
-See `IMPLEMENTATION_PLAN.md` §12.5 for the full design rationale and citations.
+The question sets are derived from established EMA / DRM scales (PANAS for
+right-now affect, Consensus Sleep Diary for morning sleep, PERMA-Profiler
+Accomplishment for evening reflection). Item weights deviate slightly from
+1/n based on each item's reliability and centrality in those scales.
 """
 
 from __future__ import annotations
