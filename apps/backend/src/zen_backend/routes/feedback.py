@@ -41,6 +41,12 @@ def feedback(
         },
     )
 
-    target = f"{settings.public_base_url.rstrip('/')}/feedback/thanks?sent_id={sent_id}&rating={rating}"
+    # The thank-you page is a Next.js route on Vercel — not a backend route.
+    # Redirect to the frontend host so the user sees the styled confirmation
+    # instead of FastAPI's default 404 for /feedback/thanks.
+    target = (
+        f"{settings.frontend_base_url.rstrip('/')}/feedback/thanks"
+        f"?sent_id={sent_id}&rating={rating}"
+    )
     return RedirectResponse(url=target, status_code=302)
 
