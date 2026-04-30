@@ -87,6 +87,23 @@ def get_bandit_state(client: Client, limit: int = 200) -> list[dict[str, Any]]:
     return result.data or []
 
 
+def get_bandit_state_for_arm_keys(
+    client: Client, arm_keys: list[str]
+) -> dict[str, dict[str, Any]]:
+    """Bulk-fetch bandit_state rows for a known set of arm keys, indexed by key.
+    Missing keys are simply absent from the result; callers fall back to the
+    Beta(1, 1) prior."""
+    if not arm_keys:
+        return {}
+    result = (
+        client.table("bandit_state")
+        .select("*")
+        .in_("arm_key", arm_keys)
+        .execute()
+    )
+    return {str(row.get("arm_key")): row for row in (result.data or []) if row.get("arm_key")}
+
+
 def insert_mood_log(client: Client, payload: dict[str, Any]) -> dict[str, Any]:
     result = client.table("mood_log").insert(payload).execute()
     rows = result.data or []

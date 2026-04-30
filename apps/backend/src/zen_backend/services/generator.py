@@ -18,6 +18,7 @@ from zen_backend.db.queries import (
     insert_sent_history,
     update_sent_history,
 )
+from zen_backend.services.bandit import make_arm_key, select_passage_via_bandit
 from zen_backend.services.checkin_context import build_checkin_summary
 from zen_backend.services.gemini_client import generate_reflection
 from zen_backend.services.gmail_client import send_email_to_many
@@ -261,7 +262,25 @@ def run_daily_generation(run_date: date, force: bool = False) -> dict[str, Any]:
     if not ranked:
         # Fallback if embeddings are not backfilled yet.
         ranked = candidates
-    passage = choose_passage(ranked)
+
+    # Bandit selection over (tradition, tone) super-arms (ADR-007).
+    # Falls back gracefully to the top-ranked passage on any internal error.
+    try:
+        passage, bandit_meta = select_passage_via_bandit(
+            ranked_passages=ranked,
+            fallback_candidates=candidates,
+            client=client,
+        )
+    except Exception as exc:  # noqa: BLE001
+        passage = choose_passage(ranked)
+        tradition = str(passage.get("tradition") or "unknown")
+        tone = str(passage.get("tone") or "gentle")
+        bandit_meta = {
+            "method": "no_bandit",
+            "reason": "selection_exception",
+            "error": str(exc),
+            "arm_key": make_arm_key(tradition, tone),
+        }
 
     citation = f'{passage.get("source", "Unknown")} — {passage.get("citation", "Unknown citation")}'
     text = str(passage.get("text", "")).strip()
@@ -313,12 +332,16 @@ def run_daily_generation(run_date: date, force: bool = False) -> dict[str, Any]:
     delivery = {"email": None, "telegram": None}
     channel_list: list[str] = []
 
+    chosen_tradition = str(passage.get("tradition") or "unknown")
+    chosen_tone = str(passage.get("tone") or "gentle")
+    arm_key = str(bandit_meta.get("arm_key") or make_arm_key(chosen_tradition, chosen_tone))
+
     sent_payload = {
         "sent_date": run_date.isoformat(),
         "passage_ids": [str(passage["id"])],
-        "arm_key": "bootstrap|calm|medium|gold",
-        "arm_tradition": passage.get("tradition", "unknown"),
-        "arm_tone": passage.get("tone", "gentle"),
+        "arm_key": arm_key,
+        "arm_tradition": chosen_tradition,
+        "arm_tone": chosen_tone,
         "arm_length": passage.get("length_bucket", "medium"),
         "arm_source_tier": passage.get("source_tier", "gold"),
         "theme_of_day": str(theme_of_day),
@@ -336,6 +359,7 @@ def run_daily_generation(run_date: date, force: bool = False) -> dict[str, Any]:
             "checkin_challenge_avg": checkin_summary.challenge_avg,
             "required_tags": required_tags,
             "prefer_season_words": prefer_season_words,
+            "bandit_sample": bandit_meta,
         },
     }
     if existing_sent_id:
