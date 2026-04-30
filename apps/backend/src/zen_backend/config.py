@@ -33,6 +33,15 @@ class Settings(BaseSettings):
     gemini_daily_call_cap: int = Field(default=20, alias="GEMINI_DAILY_CALL_CAP")
     checkin_gemini_timeout_s: float = Field(default=12.0, alias="CHECKIN_GEMINI_TIMEOUT_S")
     enable_checkin_gemini_response: bool = Field(default=True, alias="ENABLE_CHECKIN_GEMINI_RESPONSE")
+    dashboard_narrative_ttl_minutes: int = Field(
+        default=360, alias="DASHBOARD_NARRATIVE_TTL_MINUTES"
+    )
+    dashboard_narrative_timeout_s: float = Field(
+        default=15.0, alias="DASHBOARD_NARRATIVE_TIMEOUT_S"
+    )
+    enable_dashboard_narrative: bool = Field(
+        default=True, alias="ENABLE_DASHBOARD_NARRATIVE"
+    )
 
     supabase_url: str = Field(default="", alias="SUPABASE_URL")
     supabase_service_role_key: str = Field(default="", alias="SUPABASE_SERVICE_ROLE_KEY")

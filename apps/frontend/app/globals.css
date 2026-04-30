@@ -750,6 +750,82 @@ a {
   }
 }
 
+/* ---------- Dashboard: weekly Gemini narrative card ---------- */
+
+.zen-narrative-card {
+  background:
+    linear-gradient(135deg, #f3eadf 0%, #fdf8f1 100%);
+  border: 1px solid #d9cab9;
+  padding: 22px 24px 20px;
+}
+
+.zen-narrative-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.zen-narrative-body {
+  margin: 6px 0 14px;
+  padding: 0 0 0 16px;
+  border-left: 3px solid #2f5b4f;
+}
+
+.zen-narrative-body p {
+  margin: 0;
+  font-size: 1.06rem;
+  line-height: 1.7;
+  color: #2f3b2f;
+  font-style: italic;
+  letter-spacing: 0.005em;
+}
+
+.zen-narrative-meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #7a6e62;
+  letter-spacing: 0.02em;
+}
+
+.zen-narrative-meta-source {
+  font-weight: 600;
+  color: #2f5b4f;
+}
+
+.zen-narrative-meta-warn {
+  color: #8a7e72;
+  font-style: italic;
+}
+
+.zen-button-ghost {
+  background: transparent;
+  border: 1px solid #d9cab9;
+  color: #2f5b4f;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.zen-button-ghost:hover {
+  background: #f1e6d8;
+  border-color: #2f5b4f;
+}
+
+.zen-button-ghost:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ---------- Home / landing page ---------- */
 
 .zen-home {

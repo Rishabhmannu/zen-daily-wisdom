@@ -100,6 +100,100 @@ def _build_checkin_observation_prompt(
     )
 
 
+def _build_dashboard_narrative_prompt(
+    *,
+    days_considered: int,
+    submissions_total: int,
+    days_with_submission: int,
+    avg_mood_0_100: float | None,
+    avg_challenge: float | None,
+    most_completed_window: str | None,
+    trend_summary: str,
+    recent_note: str | None,
+) -> str:
+    """Prompt for the dashboard's "this period" Gemini narrative card.
+
+    Roughly the same voice rules as the per-submit observation, just
+    framed for a fortnight rather than a single check-in.
+    """
+    avg_mood_line = (
+        f"Average Mood Score (0-100): {avg_mood_0_100:.0f}"
+        if avg_mood_0_100 is not None
+        else "Average Mood Score: not available"
+    )
+    avg_challenge_line = (
+        f"Average challenge load (1-5): {avg_challenge:.1f}"
+        if avg_challenge is not None
+        else "Average challenge load: not available"
+    )
+    most_completed_line = (
+        f"Most-completed window: {most_completed_window}"
+        if most_completed_window
+        else "Most-completed window: even across windows"
+    )
+    note_line = (
+        f'Most recent user note: "{recent_note}"' if recent_note else "Most recent user note: (none)"
+    )
+    return (
+        "You write for Rishabh, a 22-year-old Indian B.Tech final-year student aspiring to "
+        "ML/AI work. He uses a daily wisdom service that asks him three quick check-ins per "
+        f"day. Below is a summary of his last {days_considered} days. Write 2 to 3 SHORT "
+        "sentences that observe a pattern in this period:\n"
+        "  1. Name what is true in the data. Don't tell him what to feel.\n"
+        "  2. (Optional second sentence) point at one thread worth holding.\n"
+        "  3. End with one quiet thing he can notice next.\n\n"
+        "Hard rules:\n"
+        "  - Total length: 40 to 90 words.\n"
+        "  - Calm, direct register. No clinical, therapeutic, or diagnostic language.\n"
+        "  - No commands, no 'you should', no 'try to'.\n"
+        "  - No clichés: 'you've got this', 'trust the journey', 'embrace', 'manifest', "
+        "'hustle', 'grind', 'level up', 'remember that'.\n"
+        "  - Do not mention 'data', 'scores', 'numbers', 'check-in', 'survey', "
+        "'analysis', 'this week', 'this period', or 'pattern'.\n"
+        "  - Do not start with 'I see', 'It looks like', 'Based on', 'Your answers'.\n\n"
+        f"Total check-ins: {submissions_total}\n"
+        f"Days with at least one check-in: {days_with_submission} of {days_considered}\n"
+        f"{avg_mood_line}\n"
+        f"{avg_challenge_line}\n"
+        f"{most_completed_line}\n"
+        f"Mood trend: {trend_summary}\n"
+        f"{note_line}\n\n"
+        "Output the sentences as plain text. Nothing else."
+    )
+
+
+def generate_dashboard_narrative(
+    *,
+    days_considered: int,
+    submissions_total: int,
+    days_with_submission: int,
+    avg_mood_0_100: float | None,
+    avg_challenge: float | None,
+    most_completed_window: str | None,
+    trend_summary: str,
+    recent_note: str | None = None,
+) -> str:
+    if not settings.gemini_api_key:
+        raise RuntimeError("GEMINI_API_KEY is not configured.")
+
+    client = genai.Client(api_key=settings.gemini_api_key)
+    prompt = _build_dashboard_narrative_prompt(
+        days_considered=days_considered,
+        submissions_total=submissions_total,
+        days_with_submission=days_with_submission,
+        avg_mood_0_100=avg_mood_0_100,
+        avg_challenge=avg_challenge,
+        most_completed_window=most_completed_window,
+        trend_summary=trend_summary,
+        recent_note=recent_note,
+    )
+    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+    text = (response.text or "").strip()
+    if not text:
+        raise RuntimeError("Gemini returned empty response.")
+    return text
+
+
 def generate_checkin_observation(
     *,
     window: str,

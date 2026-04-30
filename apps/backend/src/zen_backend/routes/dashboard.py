@@ -22,6 +22,10 @@ from zen_backend.services.checkin_delivery import (
     render_checkin_email_html,
     resolve_window,
 )
+from zen_backend.services.dashboard_narrative import (
+    NarrativePayload,
+    get_or_generate_weekly_narrative,
+)
 from zen_backend.services.generator import run_daily_generation
 from zen_backend.services.gmail_client import send_email_to_many
 from zen_backend.services.telegram_client import send_checkin_reminder
@@ -213,6 +217,34 @@ def checkins(
         "daily_series": daily_series,
     }
     return {"data": rows, "stats": stats}
+
+
+def _serialize_narrative(payload: NarrativePayload) -> dict[str, object]:
+    return {
+        "body": payload.body,
+        "source_method": payload.source_method,
+        "generated_at": payload.generated_at.isoformat(),
+        "age_minutes": round(payload.age_minutes, 2),
+        "is_fresh": payload.is_fresh,
+    }
+
+
+@router.get("/narrative")
+def get_narrative(_: dict = Depends(verify_owner_user)) -> dict[str, object]:
+    """Return the cached weekly narrative card. Regenerates only if the
+    cache is empty or older than the configured TTL."""
+    client = get_supabase_client()
+    payload = get_or_generate_weekly_narrative(client, force_refresh=False)
+    return {"data": _serialize_narrative(payload)}
+
+
+@router.post("/narrative/refresh")
+def refresh_narrative(_: dict = Depends(verify_owner_user)) -> dict[str, object]:
+    """Force a regeneration of the weekly narrative card. Used by the
+    dashboard's manual refresh button."""
+    client = get_supabase_client()
+    payload = get_or_generate_weekly_narrative(client, force_refresh=True)
+    return {"data": _serialize_narrative(payload)}
 
 
 @router.post("/checkins/send-now")

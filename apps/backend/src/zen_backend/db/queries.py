@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import Any
 
 from supabase import Client
@@ -124,4 +124,38 @@ def get_recent_checkin_responses(client: Client, limit: int = 90) -> list[dict[s
         .execute()
     )
     return result.data or []
+
+
+def get_dashboard_narrative(client: Client, kind: str) -> dict[str, Any] | None:
+    result = (
+        client.table("dashboard_narrative_cache")
+        .select("*")
+        .eq("id", kind)
+        .limit(1)
+        .execute()
+    )
+    rows = result.data or []
+    return rows[0] if rows else None
+
+
+def upsert_dashboard_narrative(
+    client: Client,
+    *,
+    kind: str,
+    body: str,
+    source_method: str,
+) -> dict[str, Any]:
+    payload = {
+        "id": kind,
+        "body": body,
+        "source_method": source_method,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    result = (
+        client.table("dashboard_narrative_cache")
+        .upsert(payload, on_conflict="id")
+        .execute()
+    )
+    rows = result.data or []
+    return rows[0] if rows else payload
 

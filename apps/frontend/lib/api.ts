@@ -83,3 +83,15 @@ export async function fetchCheckins(token: string, limit = 30, days = 14) {
   );
 }
 
+export type DashboardNarrative = {
+  body: string;
+  source_method: "gemini" | "fallback" | string;
+  generated_at: string;
+  age_minutes: number;
+  is_fresh: boolean;
+};
+
+export async function fetchNarrative(token: string) {
+  return fetchJson<{ data: DashboardNarrative }>("/dashboard/narrative", token);
+}
+

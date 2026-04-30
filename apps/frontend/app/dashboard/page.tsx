@@ -3,7 +3,15 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { MoodCounter } from "@/components/MoodCounter";
 import { MoodLineChart } from "@/components/MoodLineChart";
 import { SendNowButton } from "@/components/SendNowButton";
-import { fetchBandit, fetchCheckins, fetchHealth, fetchHistory, fetchToday } from "@/lib/api";
+import { WeeklyNarrative } from "@/components/WeeklyNarrative";
+import {
+  fetchBandit,
+  fetchCheckins,
+  fetchHealth,
+  fetchHistory,
+  fetchNarrative,
+  fetchToday,
+} from "@/lib/api";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 
@@ -33,12 +41,20 @@ export default async function DashboardPage() {
   } = await supabase.auth.getSession();
   const token = session?.access_token || "";
 
-  const [healthResult, todayResult, historyResult, banditResult, checkinResult] = await Promise.allSettled([
+  const [
+    healthResult,
+    todayResult,
+    historyResult,
+    banditResult,
+    checkinResult,
+    narrativeResult,
+  ] = await Promise.allSettled([
     fetchHealth(),
     fetchToday(token),
     fetchHistory(token, 10),
     fetchBandit(token, 10),
-    fetchCheckins(token, 30, 14)
+    fetchCheckins(token, 30, 14),
+    fetchNarrative(token),
   ]);
 
   const health = healthResult.status === "fulfilled" ? healthResult.value : null;
@@ -47,6 +63,7 @@ export default async function DashboardPage() {
   const bandit = banditResult.status === "fulfilled" ? banditResult.value.data : [];
   const checkins = checkinResult.status === "fulfilled" ? checkinResult.value.data : [];
   const checkinStats = checkinResult.status === "fulfilled" ? checkinResult.value.stats : null;
+  const narrative = narrativeResult.status === "fulfilled" ? narrativeResult.value.data : null;
 
   return (
     <main className="zen-shell">
@@ -61,6 +78,8 @@ export default async function DashboardPage() {
           place.
         </p>
       </section>
+
+      <WeeklyNarrative initial={narrative} accessToken={token} />
 
       <section className="zen-split">
         <h2 className="zen-split-title">User Experience</h2>
