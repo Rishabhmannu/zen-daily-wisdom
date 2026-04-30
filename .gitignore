@@ -25,5 +25,12 @@ apps/frontend/.next/
 dist/
 build/
 
+# Snapshots used by evaluation notebooks. Re-generate with `uv run python
+# scripts/export_eval_data.py`. Only commit a snapshot when you explicitly
+# want a portfolio-reproducible run (and have reviewed it for personal data).
+assets/eval/*.json
+!assets/eval/.gitkeep
+!assets/eval/rag_eval_queries.jsonl
+
 template-design/
 SESSION_HANDOFF.md

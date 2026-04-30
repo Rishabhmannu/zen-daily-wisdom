@@ -1,0 +1,30 @@
+{"id":"q01","query":"how to stay calm before a high-stakes job interview","stress_theme":"placement_pressure","expected_traditions":["marcus_aurelius","epictetus","tao_te_ching"]}
+{"id":"q02","query":"i feel behind compared to my classmates","stress_theme":"comparison","expected_traditions":["marcus_aurelius","epictetus","gibran","tagore"]}
+{"id":"q03","query":"i can't sleep because of future anxiety","stress_theme":"future_anxiety","expected_traditions":["marcus_aurelius","epictetus","tao_te_ching","dhammapada"]}
+{"id":"q04","query":"the day feels too heavy and i'm burning out","stress_theme":"day_load","expected_traditions":["marcus_aurelius","tao_te_ching","gibran","tagore"]}
+{"id":"q05","query":"how do i find meaning in repetitive work","stress_theme":"work","expected_traditions":["thoreau","emerson","epictetus","gibran"]}
+{"id":"q06","query":"i keep doubting my own decisions","stress_theme":"self_doubt","expected_traditions":["marcus_aurelius","emerson","analects"]}
+{"id":"q07","query":"how to focus on one thing without multitasking","stress_theme":"focus","expected_traditions":["thoreau","tao_te_ching","dhammapada"]}
+{"id":"q08","query":"i procrastinate when the task feels too big","stress_theme":"procrastination","expected_traditions":["marcus_aurelius","epictetus","analects","aesop"]}
+{"id":"q09","query":"a quiet evening reflection after a long day","stress_theme":"evening_rest","expected_traditions":["thoreau","tao_te_ching","tagore","gibran"]}
+{"id":"q10","query":"how to begin the day with intention","stress_theme":"morning_intention","expected_traditions":["marcus_aurelius","emerson","thoreau","gibran"]}
+{"id":"q11","query":"a nature passage about light or rain","stress_theme":"nature","expected_traditions":["thoreau","muir","burroughs","emerson"]}
+{"id":"q12","query":"learning to wait without impatience","stress_theme":"patience","expected_traditions":["tao_te_ching","dhammapada","epictetus","analects"]}
+{"id":"q13","query":"failing in front of others and feeling exposed","stress_theme":"shame","expected_traditions":["marcus_aurelius","epictetus","tagore"]}
+{"id":"q14","query":"deciding what to do with my career when nothing feels right","stress_theme":"career_uncertainty","expected_traditions":["thoreau","emerson","gibran","epictetus"]}
+{"id":"q15","query":"how to keep going when motivation runs out","stress_theme":"motivation","expected_traditions":["marcus_aurelius","epictetus","analects","emerson"]}
+{"id":"q16","query":"a small consolation for grief","stress_theme":"sorrow","expected_traditions":["tagore","gibran","marcus_aurelius","tao_te_ching"]}
+{"id":"q17","query":"how do i sit with uncertainty about the next year","stress_theme":"uncertainty","expected_traditions":["tao_te_ching","epictetus","marcus_aurelius","gibran"]}
+{"id":"q18","query":"a fable that teaches not to envy others","stress_theme":"envy","expected_traditions":["aesop","analects","epictetus"]}
+{"id":"q19","query":"i feel disconnected from my body","stress_theme":"embodiment","expected_traditions":["thoreau","muir","burroughs","tagore"]}
+{"id":"q20","query":"how to deal with someone who is unkind","stress_theme":"interpersonal_friction","expected_traditions":["marcus_aurelius","epictetus","analects","gibran"]}
+{"id":"q21","query":"on the discipline of one honest hour of work","stress_theme":"discipline","expected_traditions":["thoreau","emerson","analects","epictetus"]}
+{"id":"q22","query":"a thought about death that's not morbid","stress_theme":"impermanence","expected_traditions":["marcus_aurelius","dhammapada","tao_te_ching","epictetus"]}
+{"id":"q23","query":"finding stillness in a noisy day","stress_theme":"stillness","expected_traditions":["tao_te_ching","thoreau","dhammapada","gibran"]}
+{"id":"q24","query":"how do i love what i'm doing more","stress_theme":"engagement","expected_traditions":["thoreau","emerson","gibran","tagore"]}
+{"id":"q25","query":"a passage on accepting what i can't control","stress_theme":"acceptance","expected_traditions":["epictetus","marcus_aurelius","tao_te_ching"]}
+{"id":"q26","query":"i'm tired of trying to be impressive","stress_theme":"performative_load","expected_traditions":["thoreau","tao_te_ching","analects","emerson"]}
+{"id":"q27","query":"a winter morning passage","stress_theme":"seasons","expected_traditions":["thoreau","muir","burroughs"]}
+{"id":"q28","query":"how to make peace with a regret","stress_theme":"regret","expected_traditions":["marcus_aurelius","tagore","gibran","epictetus"]}
+{"id":"q29","query":"a small cosmic perspective","stress_theme":"cosmos","expected_traditions":["marcus_aurelius","emerson","tagore","muir"]}
+{"id":"q30","query":"learning to depend less on praise","stress_theme":"approval","expected_traditions":["marcus_aurelius","epictetus","analects","emerson"]}
