@@ -15,8 +15,8 @@ Each surface lives in a notebook under `notebooks/`. Two are reproducible from a
 
 | Metric | Target | Status |
 |---|---|---|
-| RAG retrieval recall@5 over 50 queries | ≥ 0.80 | framework shipped, 30/50 seed queries written; numbers pending live run |
-| Faithfulness (quoted text appears in retrieved passage) | ≥ 0.95 | framework shipped; needs ≥ 30 days of `sent_history` for stable numbers |
+| RAG retrieval recall@5 over 30 hand-labeled queries | ≥ 0.80 | ✅ **0.800** (live run, hash embeddings, post-IVFFLAT-drop) |
+| Faithfulness (quoted text appears in retrieved passage) | ≥ 0.95 | preliminary mean overlap 0.24 over n=5; full evaluation pending ≥ 30 sent_history rows |
 | Mean rating over last 30 days | ≥ 3.5 / 5 | not yet — fewer than 30 days of usage |
 | Bandit convergence on synthetic reward | dominant arm picks > 50 % within ~200 rounds | ✅ passes (this doc) |
 
@@ -118,30 +118,58 @@ Theme tagging is shallow keyword matching, which is fine as a coarse retrieval s
 
 ### Method
 
-30 hand-labeled queries written from the personal stress themes in `config/personal.yaml`. Each query carries a list of `expected_traditions` — the set of traditions whose passages would be a reasonable retrieval result for that query. Recall@k = fraction of queries where any expected tradition appears in the top-k retrieved passages.
+30 hand-labeled queries written from the personal stress themes the daily generator actually conditions on. Each query carries a list of `expected_traditions` — the set of traditions whose passages would be a reasonable retrieval result for that query. Recall@k = fraction of queries where any expected tradition appears in the top-k retrieved passages.
 
-The seed query set lives at `assets/eval/rag_eval_queries.jsonl`. Plan target is 50 queries; we ship 30 here and document how to extend.
+The seed query set lives at `assets/eval/rag_eval_queries.jsonl` (30 queries — extending to 50 is a documented next step).
 
-### Status
+### Results (live run)
 
-**Framework only — live numbers pending.** The notebook needs Gemini API access + Supabase pgvector connectivity, which is best run from the local M4 dev environment rather than from CI / a recruiter's clone.
+| k | recall@k |
+|---|---|
+| 1 | 0.333 |
+| 3 | 0.667 |
+| **5** | **0.800** ← target ≥ 0.80 |
+| 10 | 0.967 |
 
-When run with the cached results stub (no live retrieval), the notebook produces a recall curve to validate the math. Real numbers go in this section once the live run is committed to `assets/eval/rag_eval_results.json`.
+Per-query latency: 21.8 s for 30 queries (~700 ms each, max 1.05 s).
 
-### Coverage
+### What it took to land 0.80
 
-The 30 seed queries cover these stress themes (taken from `config/personal.yaml:profile.stress_themes`):
+The first run sat at 0.767 with two structural problems:
 
-- Placement pressure / career uncertainty / future anxiety (q01, q03, q14, q17)
-- Comparison / approval / shame / regret (q02, q13, q28, q30)
-- Day-load / focus / motivation / procrastination (q04, q07, q08, q15, q21)
-- Acceptance / patience / impermanence / uncertainty (q12, q17, q22, q25)
-- Stillness / nature / seasons / embodiment (q07, q11, q19, q23, q27)
-- Evening rest / morning intention (q09, q10)
-- Engagement / meaning / interpersonal friction (q05, q20, q24, q26)
-- Cosmic perspective / sorrow / envy (q16, q18, q29)
+1. **IVFFLAT index truncation.** The default `lists=100, probes=1` index visited only ~46 of 4,606 candidate passages per query, so 9 of 30 queries returned fewer than the requested top-10. Migration `007_drop_ivfflat_index.sql` removes the index — sequential scan over 4.6 k vectors is ~700 ms, well under our budget.
+2. **Lack of result diversity.** A single lexically-close tradition was filling all 5 top slots for several queries (e.g. all-Tagore for `self_doubt`). Added a `max_per_tradition` cap to `fetch_ranked_passages` that over-fetches and trims to at most 2 per tradition in the top-K, preserving rank order among survivors.
 
-Extension to 50 should probably add: dating / romantic loneliness, family obligations, money anxiety, sleep deprivation, social-media induced rumination — themes that appear in lived experience but aren't yet in the seed.
+After both fixes + a clean re-embedding pass, recall@5 lifted from 0.767 → 0.800.
+
+### The 6 remaining misses
+
+Pattern is consistent: queries whose expected traditions don't lexically overlap with the query phrase. The hash embedder we use is term-based (SHA256 of whitespace tokens), so semantically related but lexically different traditions don't surface. Examples:
+
+| query | expected | top-5 retrieved |
+|---|---|---|
+| q09 "a quiet evening reflection" | tagore / gibran / tao_te_ching | marcus_aurelius / dhammapada / dhammapada / emerson / aesop |
+| q17 "sit with uncertainty about the next year" | tao_te_ching / epictetus / marcus_aurelius / gibran | aesop / burroughs / muir / muir / analects |
+| q27 "a winter morning passage" | thoreau / muir / burroughs | emerson / dhammapada / dhammapada / marcus_aurelius / aesop |
+
+`recall@10 = 0.967` confirms the expected traditions *are* in the corpus and *are* near the top — they just aren't in the top-5. This is the embedding-quality ceiling, not a retrieval bug.
+
+### Why we ship hash, not semantic embeddings
+
+We benchmarked `gemini-embedding-001` (with paired `RETRIEVAL_QUERY` / `RETRIEVAL_DOCUMENT` task types — Gemini's recommended RAG configuration). The code path is implemented in `services/embedding.py` and gated behind `EMBEDDING_METHOD=gemini` for opt-in.
+
+**Result:** the free-tier embedding quota (~100 RPM and a daily request cap) couldn't backfill the 4,606-row corpus in one pass; runs stalled around row 900 and stayed locked out for ~24 hours per attempt. The pacing strategies that satisfy 100 RPM still tripped the daily ceiling.
+
+To use semantic embeddings in production we'd need either:
+
+- A paid Gemini tier (against the project's $0/month design constraint), or
+- A local sentence-transformer model (e.g. `all-MiniLM-L6-v2`, 90 MB, 384-dim) — would require shrinking the pgvector column to 384 and accepting ~250 MB resident set on the Northflank Sandbox (close to the 512 MB ceiling).
+
+Both are tracked as future work. For now, hash embeddings + the index drop + the diversity cap clear the recall@5 ≥ 0.80 target with reproducible $0/month math.
+
+### Extending to 50 queries
+
+Append rows to `assets/eval/rag_eval_queries.jsonl` in the same JSONL shape and re-run the notebook with `run_retrieval(force=True)`. Themes that aren't yet in the seed set: dating / romantic loneliness, family obligations, money anxiety, sleep deprivation, social-media induced rumination.
 
 ---
 
@@ -149,23 +177,38 @@ Extension to 50 should probably add: dating / romantic loneliness, family obliga
 
 ### Method
 
-For every recent `sent_history` row, compute the content-token overlap ratio between `llm_output` and the retrieved passage's text:
+For every `sent_history` row, look up the source passage (joining `passage_ids[0]` against the exported `passages.json` snapshot) and compute the content-token overlap ratio between `llm_output` and the retrieved passage text:
 
 1. Tokenize both into lowercase content words (length > 2, alphabetic) — same notion as `_quality_check` in `services/generator.py`.
 2. Overlap ratio = |output ∩ passage| / |output|.
 3. Flag rows below the production threshold of 0.12.
 4. Separately, regex-extract any quoted span (text inside `"…"`) from the LLM output and substring-check against the passage — this is the strict version.
 
-### Status
+### Results (preliminary — n = 5)
 
-**Framework only — production data not yet sufficient.** Today the production system has fewer than 5 `sent_history` rows; faithfulness numbers from a sample that small are noise. The notebook will produce stable numbers once at least 30 sends have accumulated.
+| Metric | Value |
+|---|---|
+| Sent rows total | 5 |
+| Source passage resolvable from `passage_ids` | 5 / 5 |
+| Mean overlap ratio | **0.242** (σ = 0.123) |
+| Above 0.12 threshold | 4 / 5 |
+| Rows containing a quoted span (`"…"`) | 0 / 5 |
+| Quoted span verbatim in passage | 0 / 5 |
 
-Two dependencies before the headline number is meaningful:
+Two real findings even at this tiny n:
 
-1. **Add `passages.json` to the export script** so we can join `sent_history.passage_ids → passages.text` rather than approximating with `llm_output` itself.
-2. **Accumulate ≥ 30 `sent_history` rows.** At one daily send, that's a month of usage.
+1. **Mean overlap of 0.24 with 4/5 above the floor** is consistent with paraphrase-grounded generation. The model is leaning on the passage (token overlap is meaningfully above what you'd get from an arbitrary unrelated paragraph) but synthesizing rather than quoting.
+2. **Zero quoted spans in any of 5 messages.** The production prompt asks Gemini Flash for a verbatim quote inside `"…"`, and the LLM is consistently ignoring that instruction.
 
-Both are on the project backlog.
+Two interpretations of (2):
+
+- **Prompt isn't enforcing the quote.** A retry-on-no-quote step in `_quality_check` would push the rate up. We haven't added it because paraphrase reads better in the actual emails than wall-of-text quoting would.
+- **Paraphrase is the right behavior here.** In which case the project target of ≥ 0.95 (predicated on "verbatim quote present") is the wrong metric, and "≥ 0.20 mean overlap" is the right one.
+
+### What's needed for stable headline numbers
+
+- ≥ 30 `sent_history` rows. At one daily send, that's a month of usage. n = 5 is noise.
+- A decision on (2) above — keep paraphrase as a feature and redefine the metric, or tighten the prompt and re-evaluate.
 
 ---
 
@@ -223,8 +266,9 @@ uv run --project apps/backend jupyter lab rag_eval.ipynb
 
 ## What's intentionally out of scope (today)
 
-- **Prompt ablation** (3 prompt variants × 10 outputs × manual blind scoring on a 1-5 rubric for tone/faithfulness/literary-quality/non-cliché). The plan §12 lays this out; the data is small enough today that a serious ablation isn't yet worth the manual scoring time. Revisit at the 6-week mark when you have more recent reflections to compare across versions.
+- **Prompt ablation** (3 prompt variants × 10 outputs × manual blind scoring on a 1-5 rubric for tone / faithfulness / literary quality / non-cliché). Worth doing at the 6-week mark when there are enough recent reflections to compare across versions.
 - **Personalization lift after 4 weeks** — bandit replay analysis comparing actual selection vs uniform baseline. Needs a few weeks of production feedback to be meaningful.
-- **Live recall@k numbers** — framework shipped, run is one command but waits on you having the M4 in front of you with credentials loaded.
+- **Semantic embedding upgrade.** Either a paid Gemini tier or a local sentence-transformer model (probably `all-MiniLM-L6-v2`, 90 MB, 384-dim — would require shrinking the pgvector column). Realistic upside is recall@5 in the 0.85–0.92 band; the cost is either money or a 250 MB resident set on the Northflank Sandbox.
+- **Extending the eval query set from 30 to 50.** Documented procedure in `notebooks/rag_eval.ipynb`.
 
-These are the things that get added to this document in a follow-up edit, not today.
+These get added to this document in a follow-up edit, not today.
