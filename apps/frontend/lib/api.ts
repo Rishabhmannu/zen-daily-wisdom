@@ -29,11 +29,20 @@ export type CheckinItem = {
   submitted_at: string;
 };
 
+export type DailySeriesPoint = {
+  date: string;
+  mood: number | null;
+  submissions: number;
+  windows: string[];
+};
+
 export type CheckinStats = {
   completion_rate: number;
-  avg_mood?: number | null;
+  avg_mood_0_100?: number | null;
+  avg_mood_legacy_1to5?: number | null;
   avg_challenge?: number | null;
   days_considered: number;
+  daily_series?: DailySeriesPoint[];
 };
 
 function backendUrl() {

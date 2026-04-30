@@ -1,5 +1,8 @@
-import { SendNowButton } from "@/components/SendNowButton";
+import { CompletionRing } from "@/components/CompletionRing";
 import { LogoutButton } from "@/components/LogoutButton";
+import { MoodCounter } from "@/components/MoodCounter";
+import { MoodLineChart } from "@/components/MoodLineChart";
+import { SendNowButton } from "@/components/SendNowButton";
 import { fetchBandit, fetchCheckins, fetchHealth, fetchHistory, fetchToday } from "@/lib/api";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
@@ -87,37 +90,61 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        <section className="zen-card">
-          <h2 className="zen-section-title">Check-ins (14 Days)</h2>
-          <p className="zen-row">
-            Completion rate:{" "}
-            <strong>{checkinStats ? `${(checkinStats.completion_rate * 100).toFixed(1)}%` : "n/a"}</strong>
-          </p>
-          <p className="zen-row">
-            Avg mood:{" "}
-            <strong>
-              {checkinStats?.avg_mood !== null && checkinStats?.avg_mood !== undefined
-                ? checkinStats.avg_mood.toFixed(2)
-                : "n/a"}
-            </strong>
-            {" / 5"}
-          </p>
-          <p className="zen-row">
-            Avg challenge load:{" "}
-            <strong>
-              {checkinStats?.avg_challenge !== null && checkinStats?.avg_challenge !== undefined
-                ? checkinStats.avg_challenge.toFixed(2)
-                : "n/a"}
-            </strong>
-            {" / 5"}
-          </p>
-          {checkins.length > 0 ? (
-            <p className="zen-note">
-              Last check-in: {checkins[0]?.checkin_date} ({checkins[0]?.window})
+        <section className="zen-card zen-stats-card">
+          <div className="zen-stats-head">
+            <h2 className="zen-section-title" style={{ marginBottom: 0 }}>
+              Check-ins (Last 14 Days)
+            </h2>
+            {checkins.length > 0 ? (
+              <span className="zen-stats-meta">
+                Last: {checkins[0]?.checkin_date} ({checkins[0]?.window})
+              </span>
+            ) : null}
+          </div>
+
+          <div className="zen-stats-grid">
+            <div className="zen-stats-tile zen-stagger" style={{ animationDelay: "0ms" }}>
+              <span className="zen-stats-tile-label">Completion</span>
+              <CompletionRing
+                value={checkinStats ? checkinStats.completion_rate : null}
+              />
+              <span className="zen-stats-tile-foot">
+                of {checkinStats?.days_considered ?? 14} × 3 windows
+              </span>
+            </div>
+
+            <div className="zen-stats-tile zen-stagger" style={{ animationDelay: "100ms" }}>
+              <span className="zen-stats-tile-label">Avg Mood</span>
+              <MoodCounter
+                value={checkinStats?.avg_mood_0_100 ?? null}
+                suffix=" / 100"
+                label="Average mood over 14 days"
+              />
+              <span className="zen-stats-tile-foot">across all submissions</span>
+            </div>
+
+            <div className="zen-stats-tile zen-stagger" style={{ animationDelay: "200ms" }}>
+              <span className="zen-stats-tile-label">Challenge Load</span>
+              <MoodCounter
+                value={checkinStats?.avg_challenge ?? null}
+                suffix=" / 5"
+                decimals={1}
+                label="Average challenge load over 14 days"
+              />
+              <span className="zen-stats-tile-foot">5 = heaviest</span>
+            </div>
+          </div>
+
+          <div className="zen-stagger" style={{ animationDelay: "320ms", marginTop: 14 }}>
+            <p className="zen-stats-chart-label">Mood trend</p>
+            <MoodLineChart series={checkinStats?.daily_series ?? []} />
+          </div>
+
+          {checkins.length === 0 ? (
+            <p className="zen-note" style={{ marginTop: 12 }}>
+              No check-ins recorded yet.
             </p>
-          ) : (
-            <p className="zen-note">No check-ins recorded yet.</p>
-          )}
+          ) : null}
         </section>
 
         <section className="zen-card">

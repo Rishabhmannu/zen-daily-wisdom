@@ -550,6 +550,206 @@ a {
   }
 }
 
+/* ---------- Dashboard: animated check-in stats ---------- */
+
+.zen-stats-card {
+  padding: 18px 20px 20px;
+}
+
+.zen-stats-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.zen-stats-meta {
+  font-size: 12px;
+  color: #7a6e62;
+  letter-spacing: 0.04em;
+}
+
+.zen-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.zen-stats-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 16px 12px 14px;
+  background: #f7eee2;
+  border: 1px solid #e3d4c1;
+  border-radius: 14px;
+  text-align: center;
+  min-height: 168px;
+}
+
+.zen-stats-tile-label {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #7a6e62;
+  font-weight: 600;
+}
+
+.zen-stats-tile-foot {
+  font-size: 11px;
+  color: #8a7e72;
+  letter-spacing: 0.02em;
+  margin-top: auto;
+}
+
+/* Animated counter (Avg Mood, Challenge Load) */
+.zen-counter {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 14px 0 10px;
+  color: #2f5b4f;
+  font-feature-settings: "tnum";
+}
+
+.zen-counter-value {
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.zen-counter-suffix {
+  font-size: 0.95rem;
+  color: #7a6e62;
+  font-weight: 500;
+}
+
+.zen-counter--empty {
+  font-size: 2rem;
+  color: #b3a89a;
+  padding: 18px 0 14px;
+}
+
+/* Animated SVG completion ring */
+.zen-ring {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zen-ring-svg {
+  display: block;
+}
+
+.zen-ring-track {
+  stroke: #e3d4c1;
+}
+
+.zen-ring-progress {
+  stroke: url(#zen-ring-grad, #2f5b4f);
+  stroke: #2f5b4f;
+  transition: stroke-dashoffset 80ms linear;
+}
+
+.zen-ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zen-ring-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #2f5b4f;
+  font-feature-settings: "tnum";
+}
+
+/* Mood line chart */
+.zen-stats-chart-label {
+  margin: 0 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #7a6e62;
+  font-weight: 600;
+}
+
+.zen-chart-wrapper {
+  width: 100%;
+}
+
+.zen-chart-empty {
+  padding: 28px 12px;
+  background: #f7eee2;
+  border: 1px dashed #d9cab9;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.zen-chart-tooltip {
+  background: #fdf8f1;
+  border: 1px solid #d9cab9;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #2f3b2f;
+  box-shadow: 0 6px 16px rgba(73, 56, 35, 0.12);
+}
+
+.zen-chart-tooltip-date {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.zen-chart-tooltip-mood {
+  color: #2f5b4f;
+  font-weight: 600;
+}
+
+.zen-chart-tooltip-meta {
+  margin-top: 2px;
+  color: #7a6e62;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 640px) {
+  .zen-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .zen-stats-tile {
+    min-height: auto;
+    padding: 14px 12px 12px;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .zen-stats-tile-foot {
+    margin-top: 0;
+  }
+  .zen-ring {
+    width: 72px;
+    height: 72px;
+  }
+  .zen-counter {
+    padding: 0;
+  }
+  .zen-counter-value {
+    font-size: 1.6rem;
+  }
+}
+
 @media (max-width: 520px) {
   .zen-rating-row {
     grid-template-columns: repeat(5, 1fr);

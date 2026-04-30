@@ -94,6 +94,71 @@ def send_now(payload: SendNowRequest, _: dict = Depends(verify_owner_user)) -> d
     return run_daily_generation(run_date=date.today(), force=payload.force)
 
 
+def _row_mood_to_0_100(row: dict) -> float | None:
+    """Coerce whichever mood field a check-in row carries into a 0-100 float.
+
+    Prefers the new weighted score; falls back to the legacy 1-5 mean and
+    rescales it. Returns None if neither is present or parseable.
+    """
+    weighted = row.get("mood_score_weighted")
+    if weighted is not None:
+        try:
+            return float(weighted)
+        except (TypeError, ValueError):
+            pass
+    legacy = row.get("mood_score")
+    if legacy is None:
+        return None
+    try:
+        legacy_f = float(legacy)
+    except (TypeError, ValueError):
+        return None
+    if 1.0 <= legacy_f <= 5.0:
+        return (legacy_f - 1.0) / 4.0 * 100.0
+    return legacy_f
+
+
+def _build_daily_series(
+    rows: list[dict],
+    dates_considered: list[str],
+) -> list[dict]:
+    """Per-day rollup for the 14-day mood line chart.
+
+    For each date in `dates_considered` (newest -> oldest), emit a single
+    point: the mean of all that day's mood_score_weighted values, plus the
+    submission count and which windows were filled. Days with no
+    submissions get `mood: None` so the line draws as a gap rather than a
+    misleading zero.
+    """
+    by_date: dict[str, list[float]] = {}
+    windows_by_date: dict[str, set[str]] = {}
+    for row in rows:
+        d = str(row.get("checkin_date") or "")
+        if not d:
+            continue
+        m = _row_mood_to_0_100(row)
+        if m is not None:
+            by_date.setdefault(d, []).append(m)
+        w = str(row.get("window") or "")
+        if w in {"morning", "midday", "evening"}:
+            windows_by_date.setdefault(d, set()).add(w)
+
+    series: list[dict] = []
+    # Render oldest -> newest so the chart's left-to-right axis is natural.
+    for d in reversed(dates_considered):
+        moods = by_date.get(d, [])
+        windows = sorted(windows_by_date.get(d, set()))
+        series.append(
+            {
+                "date": d,
+                "mood": round(sum(moods) / len(moods), 2) if moods else None,
+                "submissions": len(windows),
+                "windows": windows,
+            }
+        )
+    return series
+
+
 @router.get("/checkins")
 def checkins(
     limit: int = Query(default=60, ge=1, le=300),
@@ -117,15 +182,35 @@ def checkins(
     expected = len(dates_considered) * len(expected_windows)
     completion_rate = (observed / expected) if expected else 0.0
 
-    mood_values = [float(row["mood_score"]) for row in rows if row.get("mood_score") is not None]
-    challenge_values = [
-        float(row["challenge_score"]) for row in rows if row.get("challenge_score") is not None
+    mood_values_0_100 = [
+        m for m in (_row_mood_to_0_100(row) for row in rows) if m is not None
     ]
+    challenge_values = [
+        float(row["challenge_score"])
+        for row in rows
+        if row.get("challenge_score") is not None
+    ]
+    legacy_mood_values = [
+        float(row["mood_score"]) for row in rows if row.get("mood_score") is not None
+    ]
+    daily_series = _build_daily_series(rows, dates_considered)
+
     stats = {
         "completion_rate": completion_rate,
-        "avg_mood": (sum(mood_values) / len(mood_values)) if mood_values else None,
-        "avg_challenge": (sum(challenge_values) / len(challenge_values)) if challenge_values else None,
+        "avg_mood_0_100": (
+            sum(mood_values_0_100) / len(mood_values_0_100)
+            if mood_values_0_100
+            else None
+        ),
+        # Legacy 1-5 average kept for any consumer that hasn't migrated yet.
+        "avg_mood_legacy_1to5": (
+            sum(legacy_mood_values) / len(legacy_mood_values) if legacy_mood_values else None
+        ),
+        "avg_challenge": (
+            sum(challenge_values) / len(challenge_values) if challenge_values else None
+        ),
         "days_considered": days,
+        "daily_series": daily_series,
     }
     return {"data": rows, "stats": stats}
 
