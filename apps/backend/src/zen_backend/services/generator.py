@@ -258,6 +258,11 @@ def run_daily_generation(run_date: date, force: bool = False) -> dict[str, Any]:
         required_tags=required_tags,
         prefer_season_words=prefer_season_words,
         limit=40,
+        # Cap any one tradition at 2 of 40 so the bandit has at least
+        # ~20 distinct (tradition, tone) arms to sample from in the
+        # candidate list. Without this, a single lexically-close
+        # tradition can flood the top of the rank.
+        max_per_tradition=2,
     )
     if not ranked:
         # Fallback if embeddings are not backfilled yet.

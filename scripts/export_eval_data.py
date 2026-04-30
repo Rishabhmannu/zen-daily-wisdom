@@ -33,7 +33,22 @@ ENV_PATH = ROOT / ".env"
 EVAL_DIR = ROOT / "assets" / "eval"
 
 
-TABLES = ["sent_history", "feedback", "checkin_responses", "bandit_state"]
+TABLES = [
+    "sent_history",
+    "feedback",
+    "checkin_responses",
+    "bandit_state",
+    # Needed by the faithfulness notebook to join sent_history.passage_ids[0]
+    # into the actual passage text. Embedding column is dropped below.
+    "passages",
+]
+
+# Columns we explicitly drop when exporting. The `embedding` vector is large
+# (~25 MB across the corpus) and not useful in eval notebooks; faithfulness
+# and corpus_stats only need the metadata + text.
+DROPPED_COLUMNS_PER_TABLE: dict[str, set[str]] = {
+    "passages": {"embedding"},
+}
 
 
 def _supabase_client():
@@ -69,6 +84,9 @@ def fetch_all(client, table: str, page_size: int = 1000) -> list[dict]:
         if len(chunk) < page_size:
             break
         offset += page_size
+    drop = DROPPED_COLUMNS_PER_TABLE.get(table, set())
+    if drop:
+        rows = [{k: v for k, v in row.items() if k not in drop} for row in rows]
     return rows
 
 

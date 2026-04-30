@@ -195,6 +195,10 @@ def _retrieve_passage(
             required_tags=tags or None,
             prefer_season_words=False,
             limit=8,
+            # Avoid giving the same submitter 8 Tagore passages back in a
+            # row when only one tradition happens to embedding-match the
+            # check-in pattern.
+            max_per_tradition=2,
         )
         if ranked:
             return choose_passage(ranked), "retrieval"
