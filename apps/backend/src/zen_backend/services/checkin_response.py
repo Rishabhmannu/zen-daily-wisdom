@@ -212,13 +212,26 @@ def _retrieve_passage(
     return None, "none"
 
 
+# Match leading verse-number prefixes the chunker leaves on some traditions,
+# e.g. "314. An evil deed…" (Dhammapada) or "42. The wise…" (verse texts).
+# We deliberately do NOT match Roman numerals or chapter.verse patterns —
+# those are rare and ambiguous (could be legitimate content).
+_LEADING_VERSE_NUMBER_RE = re.compile(r"^\s*\d+\s*[.)]\s+")
+
+
+def _strip_leading_verse_marker(text: str) -> str:
+    return _LEADING_VERSE_NUMBER_RE.sub("", text, count=1)
+
+
 def _public_passage_view(passage: dict[str, Any] | None) -> dict[str, Any] | None:
     """Strip the passage dict to the fields the public form needs.
-    Avoids leaking embedding similarity scores etc. to the browser."""
+    Avoids leaking embedding similarity scores etc. to the browser, and
+    cleans up cosmetic chunker artifacts like the leading verse number."""
     if not passage:
         return None
+    raw_text = str(passage.get("text", "")).strip()
     return {
-        "text": str(passage.get("text", "")).strip(),
+        "text": _strip_leading_verse_marker(raw_text),
         "source": str(passage.get("source", "")).strip(),
         "citation": str(passage.get("citation", "")).strip(),
         "tradition": str(passage.get("tradition", "")).strip(),

@@ -12,6 +12,8 @@ import zen_backend.services.checkin_response as checkin_response
 from zen_backend.main import create_app
 from zen_backend.security.checkin_token import issue_checkin_token
 from zen_backend.services.checkin_response import (
+    _public_passage_view,
+    _strip_leading_verse_marker,
     _validate_message,
     build_checkin_response_bundle,
 )
@@ -49,6 +51,52 @@ def test_validate_message_rejects_too_short() -> None:
 def test_validate_message_rejects_too_long() -> None:
     text = ("word " * 120).strip()
     assert _validate_message(text) is False
+
+
+# --- Passage cleanup unit tests ----------------------------------------------
+
+
+def test_strip_leading_verse_number_with_dot() -> None:
+    assert (
+        _strip_leading_verse_marker("314. An evil deed is better left undone.")
+        == "An evil deed is better left undone."
+    )
+
+
+def test_strip_leading_verse_number_with_paren() -> None:
+    assert (
+        _strip_leading_verse_marker("42) The wise speak less than they listen.")
+        == "The wise speak less than they listen."
+    )
+
+
+def test_strip_leading_verse_leaves_clean_text_alone() -> None:
+    assert (
+        _strip_leading_verse_marker("The morning is here, and so are you.")
+        == "The morning is here, and so are you."
+    )
+
+
+def test_strip_leading_verse_leaves_inline_numbers_alone() -> None:
+    assert (
+        _strip_leading_verse_marker("There are 7 things to consider today.")
+        == "There are 7 things to consider today."
+    )
+
+
+def test_public_passage_view_cleans_text() -> None:
+    cleaned = _public_passage_view(
+        {
+            "text": "  314. An evil deed is better left undone.  ",
+            "source": "Dhammapada (Muller)",
+            "citation": "dhammapada_muller#249",
+            "tradition": "dhammapada",
+            "embedding": [0.1, 0.2],  # should not leak
+        }
+    )
+    assert cleaned is not None
+    assert cleaned["text"] == "An evil deed is better left undone."
+    assert "embedding" not in cleaned
 
 
 # --- Orchestrator integration tests ------------------------------------------

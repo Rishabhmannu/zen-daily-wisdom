@@ -122,8 +122,8 @@ export default async function CheckinPage({ searchParams }: Props) {
         </div>
         <h1 className="zen-checkin-title">A 60-second pause</h1>
         <p className="zen-checkin-lede">
-          Eight quick questions on a 1–5 scale. Your answers shape tomorrow&apos;s reflection. No
-          login needed — this link is yours.
+          {questions.length} quick question{questions.length === 1 ? "" : "s"} on a 1–5 scale.
+          Your answers shape tomorrow&apos;s reflection. No login needed — this link is yours.
         </p>
         <CheckinForm
           token={token}
